@@ -339,6 +339,5 @@ pub fn print<'tcx>(sess: &Session, ppm: PpMode, ex: PrintExtra<'tcx>) {
         }
     };
 
-
     write_or_print(&out, sess);
 }

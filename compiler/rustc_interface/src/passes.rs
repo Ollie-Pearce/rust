@@ -686,9 +686,9 @@ pub(crate) fn create_global_ctxt<'tcx>(
     dep_graph.assert_ignored();
 
     let query_result_on_disk_cache = rustc_incremental::load_query_result_cache(sess);
-    if query_result_on_disk_cache.is_some(){
+    if query_result_on_disk_cache.is_some() {
         trace!("enable incremental compilation");
-    }else{
+    } else {
         trace!("disable incremental compilation");
     }
 
@@ -703,7 +703,7 @@ pub(crate) fn create_global_ctxt<'tcx>(
     let incremental = dep_graph.is_fully_enabled();
     if incremental {
         trace!("the full dep_graph will be built");
-    }else{
+    } else {
         trace!("the full dep_graph will not be built");
     }
 
@@ -749,6 +749,7 @@ pub(crate) fn create_global_ctxt<'tcx>(
 
 /// Runs all analyses that we guarantee to run, even if errors were reported in earlier analyses.
 /// This function never fails.
+#[instrument(level="debug", skip(tcx))]
 fn run_required_analyses(tcx: TyCtxt<'_>) {
     if tcx.sess.opts.unstable_opts.hir_stats {
         rustc_passes::hir_stats::print_hir_stats(tcx);
@@ -792,6 +793,14 @@ fn run_required_analyses(tcx: TyCtxt<'_>) {
         );
     });
     rustc_hir_analysis::check_crate(tcx);
+
+    if sess.opts.unstable_opts.trace_enable{
+        tcx.hir().for_each_module(|_module|{
+
+        })
+
+    }
+
     sess.time("MIR_borrow_checking", || {
         tcx.hir().par_body_owners(|def_id| {
             // Run unsafety check because it's responsible for stealing and

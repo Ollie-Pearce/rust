@@ -2126,6 +2126,8 @@ written to standard error output)"),
         "use spec-compliant C ABI for `wasm32-unknown-unknown` (default: legacy)"),
     write_long_types_to_disk: bool = (true, parse_bool, [UNTRACKED],
         "whether long type names should be written to files instead of being printed in errors"),
+    trace_enable: bool = (false, parse_bool, [TRACKED],
+        "trace rustc dev"),
     // tidy-alphabetical-end
 
     // If you add a new option, please update:
