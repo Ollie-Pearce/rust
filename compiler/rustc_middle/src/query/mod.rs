@@ -2288,6 +2288,16 @@ rustc_queries! {
         desc { "whether the item should be made inlinable across crates" }
         separate_provide_extern
     }
+
+    query find_field((def_id, ident): (DefId, rustc_span::symbol::Ident)) -> Option<rustc_target::abi::FieldIdx> {
+        desc { |tcx| "find the index of maybe nested field `{ident}` in `{}`", tcx.def_path_str(def_id) }
+    }
+
+    query collect_mod_unsafe_blocks(key: LocalModDefId) {
+        eval_always
+        desc { |tcx| "collecting unsafe blocks in {}", describe_as_module(key, tcx) }
+    }
+    
 }
 
 rustc_query_append! { define_callbacks! }

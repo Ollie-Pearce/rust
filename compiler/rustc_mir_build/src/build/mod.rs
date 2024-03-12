@@ -45,6 +45,7 @@ pub(crate) fn closure_saved_names_of_captured_variables<'tcx>(
 }
 
 /// Construct the MIR for a given `DefId`.
+#[instrument(level="debug", skip(tcx))]
 pub(crate) fn mir_build<'tcx>(tcx: TyCtxtAt<'tcx>, def: LocalDefId) -> Body<'tcx> {
     let tcx = tcx.tcx;
     tcx.ensure_with_value().thir_abstract_const(def);

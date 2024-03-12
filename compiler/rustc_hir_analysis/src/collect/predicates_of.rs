@@ -48,7 +48,7 @@ pub(super) fn predicates_of(tcx: TyCtxt<'_>, def_id: DefId) -> ty::GenericPredic
                 .chain(std::iter::once((ty::TraitRef::identity(tcx, def_id).upcast(tcx), span))),
         );
     }
-    debug!("predicates_of(def_id={:?}) = {:?}", def_id, result);
+    //debug!("predicates_of(def_id={:?}) = {:?}", def_id, result);
     result
 }
 

@@ -747,6 +747,7 @@ pub(crate) fn create_global_ctxt<'tcx>(
     })
 }
 
+
 /// Runs all analyses that we guarantee to run, even if errors were reported in earlier analyses.
 /// This function never fails.
 #[instrument(level="debug", skip(tcx))]
