@@ -710,6 +710,7 @@ thread_local! {
 /// Sets the thread handle for the current thread.
 ///
 /// Aborts if the handle has been set already to reduce code size.
+#[inline(always)]
 pub(crate) fn set_current(thread: Thread) {
     let tid = thread.id();
     // Using `unwrap` here can add ~3kB to the binary size. We have complete
