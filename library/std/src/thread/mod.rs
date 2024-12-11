@@ -476,22 +476,7 @@ impl Builder {
         let Builder { name, stack_size } = self;
 
         let stack_size = stack_size.unwrap_or(imp::DEFAULT_MIN_STACK_SIZE);
-
-            match MIN.load(Ordering::Relaxed) {
-                0 => {}
-                n => return n - 1,
-            }
-
-            let amt = env::var_os("RUST_MIN_STACK")
-                .and_then(|s| s.to_str().and_then(|s| s.parse().ok()))
-                .unwrap_or(imp::DEFAULT_MIN_STACK_SIZE);
-
-            // 0 is our sentinel value, so ensure that we'll never see 0 after
-            // initialization has run
-            MIN.store(amt + 1, Ordering::Relaxed);
-            amt
-        });
-
+        
         let my_thread = name.map_or_else(Thread::new_unnamed, Thread::new);
         let their_thread = my_thread.clone();
 
