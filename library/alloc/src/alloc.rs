@@ -36,7 +36,7 @@ extern "Rust" {
     #[rustc_nounwind]
     fn __rust_alloc_zeroed(size: usize, align: usize) -> *mut u8;
 
-    static __rust_no_alloc_shim_is_unstable: u8;
+    //static __rust_no_alloc_shim_is_unstable: u8;
 }
 
 /// The global memory allocator.
@@ -95,7 +95,7 @@ pub unsafe fn alloc(layout: Layout) -> *mut u8 {
     unsafe {
         // Make sure we don't accidentally allow omitting the allocator shim in
         // stable code until it is actually stabilized.
-        core::ptr::read_volatile(&__rust_no_alloc_shim_is_unstable);
+        //core::ptr::read_volatile(&__rust_no_alloc_shim_is_unstable);
 
         __rust_alloc(layout.size(), layout.align())
     }
@@ -373,7 +373,7 @@ extern "Rust" {
 #[stable(feature = "global_alloc", since = "1.28.0")]
 #[rustc_const_unstable(feature = "const_alloc_error", issue = "92523")]
 #[cfg(all(not(no_global_oom_handling), not(test)))]
-#[cold]
+#[inline(always)]
 pub const fn handle_alloc_error(layout: Layout) -> ! {
     const fn ct_error(_: Layout) -> ! {
         panic!("allocation failed");
