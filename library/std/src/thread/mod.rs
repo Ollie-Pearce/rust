@@ -1615,11 +1615,15 @@ impl<'scope, T> Drop for Packet<'scope, T> {
         // (And even if we tried to handle it somehow, we'd also need to handle
         // the case where the panic payload we get out of it also panics on
         // drop, and so on. See issue #86027.)
-        if let Err(_) = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+
+
+        /*if let Err(_) = panic::catch_unwind(panic::AssertUnwindSafe(|| {
             *self.result.get_mut() = None;
         })) {
             rtabort!("thread result panicked on drop");
-        }
+        }*/
+
+
         // Book-keeping so the scope knows when it's done.
         if let Some(scope) = &self.scope {
             // Now that there will be no more user code running on this thread
