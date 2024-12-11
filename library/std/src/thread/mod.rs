@@ -165,7 +165,7 @@ mod tests;
 
 use crate::any::Any;
 use crate::cell::{Cell, OnceCell, UnsafeCell};
-use crate::env;
+//use crate::env;
 use crate::ffi::CStr;
 use crate::fmt;
 use crate::io;
@@ -177,7 +177,8 @@ use crate::panicking;
 use crate::pin::Pin;
 use crate::ptr::addr_of_mut;
 use crate::str;
-use crate::sync::atomic::{AtomicUsize, Ordering};
+//use crate::sync::atomic::{AtomicUsize, Ordering};
+use crate::sync::atomic::Ordering;
 use crate::sync::Arc;
 use crate::sys::sync::Parker;
 use crate::sys::thread as imp;
