@@ -699,17 +699,19 @@ mod cgroups {
 // We need that information to avoid blowing up when a small stack
 // is created in an application with big thread-local storage requirements.
 // See #6233 for rationale and details.
+#[inline(always)]
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-unsafe fn min_stack_size(attr: *const libc::pthread_attr_t) -> usize {
+unsafe fn min_stack_size(_attr: *const libc::pthread_attr_t) -> usize {
     // We use dlsym to avoid an ELF version dependency on GLIBC_PRIVATE. (#23628)
     // We shouldn't really be using such an internal symbol, but there's currently
     // no other way to account for the TLS size.
-    dlsym!(fn __pthread_get_minstack(*const libc::pthread_attr_t) -> libc::size_t);
+    //dlsym!(fn __pthread_get_minstack(*const libc::pthread_attr_t) -> libc::size_t);
 
-    match __pthread_get_minstack.get() {
-        None => libc::PTHREAD_STACK_MIN,
-        Some(f) => unsafe { f(attr) },
-    }
+    //match __pthread_get_minstack.get() {
+    //    None => libc::PTHREAD_STACK_MIN,
+    //    Some(f) => unsafe { f(attr) },
+    //}
+    return libc::PTHREAD_STACK_MIN;
 }
 
 // No point in looking up __pthread_get_minstack() on non-glibc platforms.
