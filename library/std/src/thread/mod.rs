@@ -699,25 +699,33 @@ where
     Builder::new().spawn(f).expect("failed to spawn thread")
 }
 
-thread_local! {
-    // Invariant: `CURRENT` and `CURRENT_ID` will always be initialized together.
-    // If `CURRENT` is initialized, then `CURRENT_ID` will hold the same value
-    // as `CURRENT.id()`.
-    static CURRENT: OnceCell<Thread> = const { OnceCell::new() };
-    static CURRENT_ID: Cell<Option<ThreadId>> = const { Cell::new(None) };
-}
+
+#[stable(feature = "rust1", since = "1.0.0")]
+#[thread_local]
+static CURRENT: OnceCell<Thread> = const { OnceCell::new() };
+
+#[stable(feature = "rust1", since = "1.0.0")]
+#[thread_local]
+static CURRENT_ID: Cell<Option<ThreadId>> = const { Cell::new(None) };
 
 /// Sets the thread handle for the current thread.
 ///
 /// Aborts if the handle has been set already to reduce code size.
+#[inline(always)]
 pub(crate) fn set_current(thread: Thread) {
     let tid = thread.id();
-    // Using `unwrap` here can add ~3kB to the binary size. We have complete
-    // control over where this is called, so just abort if there is a bug.
-    CURRENT.with(|current| match current.set(thread) {
-        Ok(()) => CURRENT_ID.set(Some(tid)),
-        Err(_) => rtabort!("thread::set_current should only be called once per thread"),
-    });
+
+    // Directly access the `CURRENT` thread-local variable.
+    //match CURRENT.set(thread) {
+      //  Ok(()) => {
+            // Set the corresponding thread-local `CURRENT_ID`.
+            CURRENT_ID.set(Some(tid));
+        //}
+        //Err(_) => {
+            // Handle the error case.
+         //   rtabort!("thread::set_current should only be called once per thread");
+        //}
+    //}
 }
 
 /// Gets a handle to the thread that invokes it.
