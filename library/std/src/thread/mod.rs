@@ -1229,8 +1229,10 @@ pub struct ThreadId(NonZero<u64>);
 
 impl ThreadId {
     // Generate a new unique thread ID.
+    #[inline(always)]
     fn new() -> ThreadId {
         #[cold]
+        #[inline(always)]
         fn exhausted() -> ! {
             panic!("failed to generate unique thread ID: bitspace exhausted")
         }
