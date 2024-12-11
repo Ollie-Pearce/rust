@@ -359,6 +359,7 @@ struct ArcInner<T: ?Sized> {
 }
 
 /// Calculate layout for `ArcInner<T>` using the inner value's layout
+#[inline(always)]
 fn arcinner_layout_for_value_layout(layout: Layout) -> Layout {
     // Calculate layout using the given value layout.
     // Previously, layout was calculated on the expression
@@ -2012,6 +2013,7 @@ impl<T> Arc<[T]> {
         }
 
         impl<T> Drop for Guard<T> {
+            #[inline(always)]
             fn drop(&mut self) {
                 unsafe {
                     let slice = from_raw_parts_mut(self.elems, self.n_elems);
@@ -2480,7 +2482,7 @@ unsafe impl<#[may_dangle] T: ?Sized, A: Allocator> Drop for Arc<T, A> {
     /// drop(foo);    // Doesn't print anything
     /// drop(foo2);   // Prints "dropped!"
     /// ```
-    #[inline]
+    #[inline(always)]
     fn drop(&mut self) {
         // Because `fetch_sub` is already atomic, we do not need to synchronize
         // with other threads unless we are going to delete the object. This
@@ -3151,6 +3153,7 @@ unsafe impl<#[may_dangle] T: ?Sized, A: Allocator> Drop for Weak<T, A> {
     ///
     /// assert!(other_weak_foo.upgrade().is_none());
     /// ```
+    #[inline(always)]
     fn drop(&mut self) {
         // If we find out that we were the last weak pointer, then its time to
         // deallocate the data entirely. See the discussion in Arc::drop() about
@@ -3887,6 +3890,7 @@ impl<T: ?Sized, A: Allocator> UniqueArcUninit<T, A> {
 
 #[cfg(not(no_global_oom_handling))]
 impl<T: ?Sized, A: Allocator> Drop for UniqueArcUninit<T, A> {
+    #[inline(always)]
     fn drop(&mut self) {
         // SAFETY:
         // * new() produced a pointer safe to deallocate.
