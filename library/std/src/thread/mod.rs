@@ -1311,6 +1311,7 @@ mod thread_name_string {
         }
     }
     impl From<String> for ThreadNameString {
+        #[inline(always)]
         fn from(s: String) -> Self {
             Self {
                 inner: CString::new(s).expect("thread name may not contain interior null bytes"),
