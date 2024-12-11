@@ -21,7 +21,7 @@ type LocalStream = Arc<Mutex<Vec<u8>>>;
 
 thread_local! {
     /// Used by the test crate to capture the output of the print macros and panics.
-    static OUTPUT_CAPTURE: Cell<Option<LocalStream>> = {
+    static OUTPUT_CAPTURE: Cell<Option<LocalStream>> = const {
         Cell::new(None)
     }
 }
@@ -38,7 +38,9 @@ thread_local! {
 /// have a consistent order between set_output_capture and print_to *within
 /// the same thread*. Within the same thread, things always have a perfectly
 /// consistent order. So Ordering::Relaxed is fine.
-static OUTPUT_CAPTURE_USED: AtomicBool = AtomicBool::new(false);
+
+const OUTPUT_CAPTURE_USED: AtomicBool = AtomicBool::new(false);
+//const OUTPUT_CAPTURE_USED: AtomicBool = AtomicBool::new(false);
 
 /// A handle to a raw instance of the standard input stream of this process.
 ///
@@ -1064,6 +1066,7 @@ impl fmt::Debug for StderrLock<'_> {
     issue = "none"
 )]
 #[doc(hidden)]
+#[inline(always)]
 pub fn set_output_capture(sink: Option<LocalStream>) -> Option<LocalStream> {
     try_set_output_capture(sink).expect(
         "cannot access a Thread Local Storage value \
@@ -1081,15 +1084,16 @@ pub fn set_output_capture(sink: Option<LocalStream>) -> Option<LocalStream> {
     issue = "none"
 )]
 #[doc(hidden)]
+#[inline(always)]
 pub fn try_set_output_capture(
-    sink: Option<LocalStream>,
+    _sink: Option<LocalStream>,
 ) -> Result<Option<LocalStream>, AccessError> {
-    if sink.is_none() && !OUTPUT_CAPTURE_USED.load(Ordering::Relaxed) {
+    //if sink.is_none() && !OUTPUT_CAPTURE_USED.load(Ordering::Relaxed) {
         // OUTPUT_CAPTURE is definitely None since OUTPUT_CAPTURE_USED is false.
         return Ok(None);
-    }
-    OUTPUT_CAPTURE_USED.store(true, Ordering::Relaxed);
-    OUTPUT_CAPTURE.try_with(move |slot| slot.replace(sink))
+    //}
+    //OUTPUT_CAPTURE_USED.store(true, Ordering::Relaxed);
+    //OUTPUT_CAPTURE.try_with(move |slot| slot.replace(sink))
 }
 
 /// Write `args` to the capture buffer if enabled and possible, or `global_s`
@@ -1118,7 +1122,7 @@ where
         panic!("failed printing to {label}: {e}");
     }
 }
-
+//#[inline(always)]
 fn print_to_buffer_if_capture_used(args: fmt::Arguments<'_>) -> bool {
     OUTPUT_CAPTURE_USED.load(Ordering::Relaxed)
         && OUTPUT_CAPTURE.try_with(|s| {
