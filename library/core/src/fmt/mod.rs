@@ -203,6 +203,7 @@ pub trait Write {
     /// assert_eq!(&buf, "world");
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(never)]
     fn write_fmt(&mut self, args: Arguments<'_>) -> Result {
         // We use a specialization for `Sized` types to avoid an indirection
         // through `&mut self`
@@ -245,7 +246,7 @@ impl<W: Write + ?Sized> Write for &mut W {
     fn write_char(&mut self, c: char) -> Result {
         (**self).write_char(c)
     }
-
+    #[inline(never)]
     fn write_fmt(&mut self, args: Arguments<'_>) -> Result {
         (**self).write_fmt(args)
     }
@@ -1646,7 +1647,6 @@ impl<'a> Formatter<'a> {
     /// assert_eq!(format!("{:0>8}", Foo(2)), "Foo 2");
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
-    #[inline]
     pub fn write_fmt(&mut self, fmt: Arguments<'_>) -> Result {
         if let Some(s) = fmt.as_statically_known_str() {
             self.buf.write_str(s)
@@ -2340,8 +2340,7 @@ impl Write for Formatter<'_> {
     fn write_char(&mut self, c: char) -> Result {
         self.buf.write_char(c)
     }
-
-    #[inline]
+    #[inline(never)]
     fn write_fmt(&mut self, args: Arguments<'_>) -> Result {
         if let Some(s) = args.as_statically_known_str() {
             self.buf.write_str(s)
