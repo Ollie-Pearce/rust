@@ -1241,7 +1241,8 @@ impl ThreadId {
             if #[cfg(target_has_atomic = "64")] {
                 use crate::sync::atomic::AtomicU64;
 
-                static COUNTER: AtomicU64 = AtomicU64::new(0);
+                //static COUNTER: AtomicU64 = AtomicU64::new(0);
+                const COUNTER: AtomicU64 = AtomicU64::new(0);
 
                 let mut last = COUNTER.load(Ordering::Relaxed);
                 loop {
