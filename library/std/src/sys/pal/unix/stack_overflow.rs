@@ -1,4 +1,5 @@
 #![cfg_attr(test, allow(dead_code))]
+#[allow(dead_code)]
 
 use self::imp::{drop_handler, make_handler};
 
