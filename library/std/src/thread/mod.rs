@@ -524,6 +524,7 @@ impl Builder {
             }
         }
         impl<T> Drop for MaybeDangling<T> {
+            #[inline(always)]
             fn drop(&mut self) {
                 // SAFETY: we are always initialized.
                 unsafe { self.0.assume_init_drop() };
