@@ -48,6 +48,7 @@ unsafe impl Sync for Thread {}
 
 impl Thread {
     // unsafe: see thread::Builder::spawn_unchecked for safety requirements
+    #[inline(always)]
     pub unsafe fn new(stack: usize, p: Box<dyn FnOnce()>) -> io::Result<Thread> {
         let p = Box::into_raw(Box::new(p));
         let mut native: libc::pthread_t = mem::zeroed();
@@ -98,7 +99,7 @@ impl Thread {
         } else {
             Ok(Thread { id: native })
         };
-
+        #[inline(always)]
         extern "C" fn thread_start(main: *mut libc::c_void) -> *mut libc::c_void {
             unsafe {
                 // Next, set up our stack overflow handler which may get triggered if we run
@@ -266,7 +267,7 @@ impl Thread {
             }
         }
     }
-
+    #[inline(always)]
     pub fn join(self) {
         unsafe {
             let ret = libc::pthread_join(self.id, ptr::null_mut());
@@ -287,6 +288,7 @@ impl Thread {
 }
 
 impl Drop for Thread {
+    #[inline(always)]
     fn drop(&mut self) {
         let ret = unsafe { libc::pthread_detach(self.id) };
         debug_assert_eq!(ret, 0);
