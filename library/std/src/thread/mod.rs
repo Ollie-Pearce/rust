@@ -155,6 +155,10 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 // Under `test`, `__FastLocalKeyInner` seems unused.
 #![cfg_attr(test, allow(dead_code))]
+#![allow(missing_debug_implementations)]
+#![allow(missing_docs)]
+// Under `test`, `__FastLocalKeyInner` seems unused.
+
 
 #[cfg(all(test, not(target_os = "emscripten")))]
 mod tests;
