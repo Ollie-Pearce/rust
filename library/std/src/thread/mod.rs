@@ -475,8 +475,7 @@ impl Builder {
     {
         let Builder { name, stack_size } = self;
 
-        let stack_size = stack_size.unwrap_or_else(|| {
-            static MIN: AtomicUsize = AtomicUsize::new(0);
+        let stack_size = stack_size.unwrap_or(imp::DEFAULT_MIN_STACK_SIZE);
 
             match MIN.load(Ordering::Relaxed) {
                 0 => {}
