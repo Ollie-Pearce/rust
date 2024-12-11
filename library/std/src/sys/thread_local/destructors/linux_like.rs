@@ -14,7 +14,9 @@ use crate::mem::transmute;
 
 // FIXME: The Rust compiler currently omits weakly function definitions (i.e.,
 // __cxa_thread_atexit_impl) and its metadata from LLVM IR.
+#[allow(inline_no_sanitize)]
 #[no_sanitize(cfi, kcfi)]
+#[inline(always)]
 pub unsafe fn register(t: *mut u8, dtor: unsafe extern "C" fn(*mut u8)) {
     /// This is necessary because the __cxa_thread_atexit_impl implementation
     /// std links to by default may be a C or C++ implementation that was not
