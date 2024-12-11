@@ -239,6 +239,7 @@ pub trait FnMut<Args: Tuple>: FnOnce<Args> {
 #[fundamental] // so that regex can rely that `&str: !FnMut`
 #[must_use = "closures are lazy and do nothing unless called"]
 // FIXME(effects) #[const_trait]
+
 pub trait FnOnce<Args: Tuple> {
     /// The returned type after the call operator is used.
     #[lang = "fn_once_output"]
@@ -258,6 +259,7 @@ mod impls {
     where
         F: Fn<A>,
     {
+        #[inline(always)]
         extern "rust-call" fn call(&self, args: A) -> F::Output {
             (**self).call(args)
         }
@@ -268,6 +270,7 @@ mod impls {
     where
         F: Fn<A>,
     {
+        #[inline(always)]
         extern "rust-call" fn call_mut(&mut self, args: A) -> F::Output {
             (**self).call(args)
         }
@@ -279,7 +282,7 @@ mod impls {
         F: Fn<A>,
     {
         type Output = F::Output;
-
+        #[inline(always)]
         extern "rust-call" fn call_once(self, args: A) -> F::Output {
             (*self).call(args)
         }
@@ -290,6 +293,7 @@ mod impls {
     where
         F: FnMut<A>,
     {
+        #[inline(always)]
         extern "rust-call" fn call_mut(&mut self, args: A) -> F::Output {
             (*self).call_mut(args)
         }
@@ -301,6 +305,7 @@ mod impls {
         F: FnMut<A>,
     {
         type Output = F::Output;
+        #[inline(always)]
         extern "rust-call" fn call_once(self, args: A) -> F::Output {
             (*self).call_mut(args)
         }
