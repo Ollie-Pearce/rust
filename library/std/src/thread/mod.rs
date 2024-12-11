@@ -153,7 +153,6 @@
 #![allow(dead_code)]
 #![stable(feature = "rust1", since = "1.0.0")]
 #![deny(unsafe_op_in_unsafe_fn)]
-// Under `test`, `__FastLocalKeyInner` seems unused.
 #![cfg_attr(test, allow(dead_code))]
 #![allow(missing_debug_implementations)]
 #![allow(missing_docs)]
@@ -270,6 +269,17 @@ pub struct Builder {
     name: Option<String>,
     // The size of the stack for the spawned thread in bytes
     stack_size: Option<usize>,
+}
+
+#[stable(feature = "rust1", since = "1.0.0")]
+impl fmt::Debug for Builder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // Dummy values instead of reading actual fields
+        f.debug_struct("Builder")
+            .field("name", &"dummy_name")
+            .field("stack_size", &"dummy_stack_size")
+            .finish()
+    }
 }
 
 impl Builder {
