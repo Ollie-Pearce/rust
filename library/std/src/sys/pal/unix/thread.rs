@@ -4,11 +4,11 @@ use crate::io;
 use crate::mem;
 use crate::num::NonZero;
 use crate::ptr;
-use crate::sys::{os, stack_overflow};
+use crate::sys::{os};
 use crate::time::Duration;
 
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-use crate::sys::weak::dlsym;
+//use crate::sys::weak::dlsym;
 #[cfg(any(target_os = "solaris", target_os = "illumos", target_os = "nto"))]
 use crate::sys::weak::weak;
 #[cfg(not(any(target_os = "l4re", target_os = "vxworks", target_os = "espidf")))]
