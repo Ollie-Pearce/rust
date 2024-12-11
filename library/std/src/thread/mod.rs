@@ -579,7 +579,7 @@ impl Builder {
             // exist after the thread has terminated, which is signaled by `Thread::join`
             // returning.
             native: unsafe { imp::Thread::new(stack_size, main)? },
-            thread: my_thread,
+            thread: my_thread(),
             packet: my_packet,
         })
     }
