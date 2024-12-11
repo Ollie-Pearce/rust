@@ -302,6 +302,7 @@ impl Builder {
     /// handler.join().unwrap();
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn new() -> Builder {
         Builder { name: None, stack_size: None }
     }
@@ -395,6 +396,7 @@ impl Builder {
     /// handler.join().unwrap();
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn spawn<F, T>(self, f: F) -> io::Result<JoinHandle<T>>
     where
         F: FnOnce() -> T,
@@ -463,6 +465,7 @@ impl Builder {
     ///
     /// [`io::Result`]: crate::io::Result
     #[unstable(feature = "thread_spawn_unchecked", issue = "55132")]
+    #[inline(never)]
     pub unsafe fn spawn_unchecked<'a, F, T>(self, f: F) -> io::Result<JoinHandle<T>>
     where
         F: FnOnce() -> T,
@@ -472,6 +475,7 @@ impl Builder {
         Ok(JoinHandle(unsafe { self.spawn_unchecked_(f, None) }?))
     }
 
+    #[inline(always)]
     unsafe fn spawn_unchecked_<'a, 'scope, F, T>(
         self,
         f: F,
