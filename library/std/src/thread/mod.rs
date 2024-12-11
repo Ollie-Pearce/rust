@@ -264,7 +264,7 @@ cfg_if::cfg_if! {
 /// [stack-size]: ./index.html#stack-size
 #[must_use = "must eventually spawn the thread"]
 #[stable(feature = "rust1", since = "1.0.0")]
-#[derive(Debug)]
+#[repr(packed)]
 pub struct Builder {
     // A name for the thread-to-be, for identification in panic messages
     name: Option<String>,
