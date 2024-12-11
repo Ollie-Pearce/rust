@@ -1204,8 +1204,9 @@ impl<T> Option<T> {
     /// #   Ok(())
     /// # }
     /// ```
-    #[inline]
+    
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn map_or_else<U, D, F>(self, default: D, f: F) -> U
     where
         D: FnOnce() -> U,
