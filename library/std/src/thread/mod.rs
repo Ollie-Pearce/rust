@@ -533,15 +533,12 @@ impl Builder {
 
         let f = MaybeDangling::new(f);
         let main = move || {
-            if let Some(name) = their_thread.cname() {
-                imp::Thread::set_name(name);
-            }
 
             crate::io::set_output_capture(output_capture);
 
             let f = f.into_inner();
-            set_current(their_thread);
-            let try_result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            //set_current(their_thread());
+            let try_result = panic::catch_unwind( panic::AssertUnwindSafe(|| {
                 crate::sys::backtrace::__rust_begin_short_backtrace(f)
             }));
             // SAFETY: `their_packet` as been built just above and moved by the
