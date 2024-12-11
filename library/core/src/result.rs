@@ -1672,7 +1672,7 @@ impl<T, E> Result<Result<T, E>, E> {
 
 // This is a separate function to reduce the code size of the methods
 #[cfg(not(feature = "panic_immediate_abort"))]
-#[inline(never)]
+#[inline(always)]
 #[cold]
 #[track_caller]
 fn unwrap_failed(msg: &str, error: &dyn fmt::Debug) -> ! {
