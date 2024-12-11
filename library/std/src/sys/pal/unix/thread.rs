@@ -104,7 +104,7 @@ impl Thread {
             unsafe {
                 // Next, set up our stack overflow handler which may get triggered if we run
                 // out of stack.
-                let _handler = stack_overflow::Handler::new();
+                //let _handler = stack_overflow::Handler::new();
                 // Finally, let's run some code.
                 Box::from_raw(main as *mut Box<dyn FnOnce()>)();
             }
