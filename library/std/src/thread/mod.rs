@@ -1373,10 +1373,11 @@ pub struct Thread {
 
 impl Thread {
     /// Used only internally to construct a thread object without spawning.
+    #[inline(always)]
     pub(crate) fn new(name: String) -> Thread {
         Self::new_inner(ThreadName::Other(name.into()))
     }
-
+    #[inline(always)]
     pub(crate) fn new_unnamed() -> Thread {
         Self::new_inner(ThreadName::Unnamed)
     }
@@ -1385,7 +1386,7 @@ impl Thread {
     pub(crate) fn new_main() -> Thread {
         Self::new_inner(ThreadName::Main)
     }
-
+    #[inline(always)]
     fn new_inner(name: ThreadName) -> Thread {
         // We have to use `unsafe` here to construct the `Parker` in-place,
         // which is required for the UNIX implementation.
@@ -1596,6 +1597,7 @@ struct Packet<'scope, T> {
 unsafe impl<'scope, T: Send> Sync for Packet<'scope, T> {}
 
 impl<'scope, T> Drop for Packet<'scope, T> {
+    #[inline(always)]
     fn drop(&mut self) {
         // If this packet was for a thread that ran in a scope, the thread
         // panicked, and nobody consumed the panic payload, we make sure
