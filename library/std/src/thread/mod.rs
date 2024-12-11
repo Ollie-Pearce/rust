@@ -719,18 +719,18 @@ pub(crate) fn set_current(thread: Thread) {
 /// In contrast to the public `current` function, this will not panic if called
 /// from inside a TLS destructor.
 pub(crate) fn try_current() -> Option<Thread> {
-    CURRENT
-        .try_with(|current| {
-            current
-                .get_or_init(|| {
-                    let thread = Thread::new_unnamed();
-                    CURRENT_ID.set(Some(thread.id()));
-                    thread
-                })
-                .clone()
-        })
-        .ok()
+    // Check if `CURRENT` has been initialized.
+    if let Some(thread) = CURRENT.get() {
+        Some(thread.clone())
+    } else {
+        // Initialize it if not already set.
+        let thread = Thread::new_unnamed();
+        CURRENT.set(thread.clone()).ok()?;
+        CURRENT_ID.set(Some(thread.id()));
+        Some(thread)
+    }
 }
+
 
 /// Gets the id of the thread that invokes it.
 #[inline]
