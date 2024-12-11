@@ -149,7 +149,8 @@
 //! [`RefCell`]: crate::cell::RefCell
 //! [`with`]: LocalKey::with
 //! [`thread_local!`]: crate::thread_local
-
+#![allow(unused_variables)]
+#![allow(dead_code)]
 #![stable(feature = "rust1", since = "1.0.0")]
 #![deny(unsafe_op_in_unsafe_fn)]
 // Under `test`, `__FastLocalKeyInner` seems unused.
