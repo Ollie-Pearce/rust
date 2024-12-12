@@ -169,7 +169,7 @@ use crate::ffi::CStr;
 use crate::fmt;
 use crate::io;
 use crate::marker::PhantomData;
-use crate::mem::{self, forget};
+use crate::mem::{forget};
 use crate::num::NonZero;
 use crate::panic;
 use crate::panicking;
