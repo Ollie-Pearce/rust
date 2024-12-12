@@ -506,38 +506,11 @@ impl Builder {
         let output_capture = crate::io::set_output_capture(None);
         crate::io::set_output_capture(output_capture.clone());
 
-        // Pass `f` in `MaybeUninit` because actually that closure might *run longer than the lifetime of `F`*.
-        // See <https://github.com/rust-lang/rust/issues/101983> for more details.
-        // To prevent leaks we use a wrapper that drops its contents.
-        #[repr(transparent)]
-        struct MaybeDangling<T>(mem::MaybeUninit<T>);
-        impl<T> MaybeDangling<T> {
-            fn new(x: T) -> Self {
-                MaybeDangling(mem::MaybeUninit::new(x))
-            }
-            fn into_inner(self) -> T {
-                // SAFETY: we are always initialized.
-                let ret = unsafe { self.0.assume_init_read() };
-                // Make sure we don't drop.
-                mem::forget(self);
-                ret
-            }
-        }
-        impl<T> Drop for MaybeDangling<T> {
-            #[inline(always)]
-            fn drop(&mut self) {
-                // SAFETY: we are always initialized.
-                unsafe { self.0.assume_init_drop() };
-            }
-        }
-
-        let f = MaybeDangling::new(f);
         let main = move || {
 
             crate::io::set_output_capture(output_capture);
 
-            let f = f.into_inner();
-            //set_current(their_thread());
+            set_current(their_thread());
             let try_result = panic::catch_unwind( panic::AssertUnwindSafe(|| {
                 crate::sys::backtrace::__rust_begin_short_backtrace(f)
             }));
