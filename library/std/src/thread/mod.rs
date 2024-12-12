@@ -1388,7 +1388,7 @@ impl Thread {
         // SAFETY: We pin the Arc immediately after creation, so its address never
         // changes.
         let inner = unsafe {
-            let mut arc = Arc::<Inner>::new_uninit();
+            let mut arc = Arc::<Inner>::new_zeroed();
             let ptr = Arc::get_mut_unchecked(&mut arc).as_mut_ptr();
             addr_of_mut!((*ptr).name).write(name);
             addr_of_mut!((*ptr).id).write(ThreadId::new());
