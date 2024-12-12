@@ -522,7 +522,6 @@ impl Builder {
             // Here `their_packet` gets dropped, and if this is the last `Arc` for that packet that
             // will call `decrement_num_running_threads` and therefore signal that this thread is
             // done.
-            drop(their_packet);
             // Here, the lifetime `'a` and even `'scope` can end. `main` keeps running for a bit
             // after that before returning itself.
         };
