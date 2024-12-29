@@ -132,6 +132,7 @@ impl ScopeData {
 /// The `'env: 'scope` bound is part of the definition of the `Scope` type.
 #[track_caller]
 #[stable(feature = "scoped_threads", since = "1.63.0")]
+#[inline(always)]
 pub fn scope<'env, F, T>(f: F) -> T
 where
     F: for<'scope> FnOnce(&'scope Scope<'scope, 'env>) -> T,
