@@ -536,7 +536,7 @@ impl Builder {
             crate::io::set_output_capture(output_capture);
 
             let f = f.into_inner();
-            //set_current(their_thread());
+            set_current(their_thread());
             let try_result = panic::catch_unwind( panic::AssertUnwindSafe(|| {
                 crate::sys::backtrace::__rust_begin_short_backtrace(f)
             }));
@@ -714,16 +714,16 @@ pub(crate) fn set_current(thread: Thread) {
     let tid = thread.id();
 
     // Directly access the `CURRENT` thread-local variable.
-    //match CURRENT.set(thread) {
-      //  Ok(()) => {
+    match CURRENT.set(thread) {
+        Ok(()) => {
             // Set the corresponding thread-local `CURRENT_ID`.
             CURRENT_ID.set(Some(tid));
-        //}
-        //Err(_) => {
+        }
+        Err(_) => {
             // Handle the error case.
-         //   rtabort!("thread::set_current should only be called once per thread");
-        //}
-    //}
+            rtabort!("thread::set_current should only be called once per thread");
+        }
+    }
 }
 
 /// Gets a handle to the thread that invokes it.
