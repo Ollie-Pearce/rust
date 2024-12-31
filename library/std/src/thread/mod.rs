@@ -697,14 +697,10 @@ where
     Builder::new().spawn(f).expect("failed to spawn thread")
 }
 
-
-#[stable(feature = "rust1", since = "1.0.0")]
-#[thread_local]
-static CURRENT: OnceCell<Thread> = const { OnceCell::new() };
-
-#[stable(feature = "rust1", since = "1.0.0")]
-#[thread_local]
-static CURRENT_ID: Cell<Option<ThreadId>> = const { Cell::new(None) };
+thread_local! {
+    static CURRENT: OnceCell<Thread> = const { OnceCell::new() };
+    static CURRENT_ID: Cell<Option<ThreadId>> = const { Cell::new(None) };
+}
 
 /// Sets the thread handle for the current thread.
 ///
@@ -712,18 +708,12 @@ static CURRENT_ID: Cell<Option<ThreadId>> = const { Cell::new(None) };
 #[inline(always)]
 pub(crate) fn set_current(thread: Thread) {
     let tid = thread.id();
-
-    // Directly access the `CURRENT` thread-local variable.
-    match CURRENT.set(thread) {
-        Ok(()) => {
-            // Set the corresponding thread-local `CURRENT_ID`.
-            CURRENT_ID.set(Some(tid));
-        }
-        Err(_) => {
-            // Handle the error case.
-            rtabort!("thread::set_current should only be called once per thread");
-        }
-    }
+    // Using `unwrap` here can add ~3kB to the binary size. We have complete
+    // control over where this is called, so just abort if there is a bug.
+    CURRENT.with(|current| match current.set(thread) {
+        Ok(()) => CURRENT_ID.set(Some(tid)),
+        Err(_) => rtabort!("thread::set_current should only be called once per thread"),
+    });
 }
 
 /// Gets a handle to the thread that invokes it.
@@ -731,18 +721,18 @@ pub(crate) fn set_current(thread: Thread) {
 /// In contrast to the public `current` function, this will not panic if called
 /// from inside a TLS destructor.
 pub(crate) fn try_current() -> Option<Thread> {
-    // Check if `CURRENT` has been initialized.
-    if let Some(thread) = CURRENT.get() {
-        Some(thread.clone())
-    } else {
-        // Initialize it if not already set.
-        let thread = Thread::new_unnamed();
-        CURRENT.set(thread.clone()).ok()?;
-        CURRENT_ID.set(Some(thread.id()));
-        Some(thread)
-    }
+    CURRENT
+        .try_with(|current| {
+            current
+                .get_or_init(|| {
+                    let thread = Thread::new_unnamed();
+                    CURRENT_ID.set(Some(thread.id()));
+                    thread
+                })
+                .clone()
+        })
+        .ok()
 }
-
 
 /// Gets the id of the thread that invokes it.
 #[inline]
