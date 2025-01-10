@@ -490,9 +490,7 @@ impl Builder {
 
         let stack_size = stack_size.unwrap_or(imp::DEFAULT_MIN_STACK_SIZE);
 
-        let my_thread = Thread::new_unnamed;
-        
-
+        let my_thread = name.map_or_else(Thread::new_unnamed, Thread::new);
         let their_thread = my_thread.clone();
 
         let my_packet: Arc<Packet<'scope, T>> = Arc::new(Packet {
@@ -533,10 +531,14 @@ impl Builder {
         let f = MaybeDangling::new(f);
         let main = move || {
 
+            if let Some(name) = their_thread.cname() {
+                imp::Thread::set_name(name);
+            }
+
             crate::io::set_output_capture(output_capture);
 
             let f = f.into_inner();
-            set_current(their_thread());
+            set_current(their_thread);
             let try_result = panic::catch_unwind( panic::AssertUnwindSafe(|| {
                 crate::sys::backtrace::__rust_begin_short_backtrace(f)
             }));
@@ -578,7 +580,7 @@ impl Builder {
             // exist after the thread has terminated, which is signaled by `Thread::join`
             // returning.
             native: unsafe { imp::Thread::new(stack_size, main)? },
-            thread: my_thread(),
+            thread: my_thread,
             packet: my_packet,
         })
     }
@@ -697,7 +699,11 @@ where
     Builder::new().spawn(f).expect("failed to spawn thread")
 }
 
+
 thread_local! {
+    // Invariant: `CURRENT` and `CURRENT_ID` will always be initialized together.
+    // If `CURRENT` is initialized, then `CURRENT_ID` will hold the same value
+    // as `CURRENT.id()`.
     static CURRENT: OnceCell<Thread> = const { OnceCell::new() };
     static CURRENT_ID: Cell<Option<ThreadId>> = const { Cell::new(None) };
 }

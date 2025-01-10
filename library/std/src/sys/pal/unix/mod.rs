@@ -366,6 +366,7 @@ pub fn cvt_nz(error: libc::c_int) -> crate::io::Result<()> {
 // multithreaded C program.  It is much less severe for Rust, because Rust
 // stdlib doesn't use libc stdio buffering.  In a typical Rust program, which
 // does not use C stdio, even a buggy libc::abort() is, in fact, safe.
+#[inline(always)]
 pub fn abort_internal() -> ! {
     unsafe { libc::abort() }
 }

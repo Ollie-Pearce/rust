@@ -279,7 +279,7 @@ impl FileDesc {
             None => io::default_read_vectored(|b| self.read_at(b, offset), bufs),
         }
     }
-
+    #[inline(always)]
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let ret = cvt(unsafe {
             libc::write(
@@ -598,6 +598,7 @@ impl IntoRawFd for FileDesc {
 }
 
 impl FromRawFd for FileDesc {
+    #[inline(always)]
     unsafe fn from_raw_fd(raw_fd: RawFd) -> Self {
         Self(FromRawFd::from_raw_fd(raw_fd))
     }

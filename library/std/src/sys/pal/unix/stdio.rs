@@ -67,6 +67,7 @@ impl Stderr {
 }
 
 impl io::Write for Stderr {
+    #[inline(always)]
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         unsafe { ManuallyDrop::new(FileDesc::from_raw_fd(libc::STDERR_FILENO)).write(buf) }
     }
