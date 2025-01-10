@@ -519,7 +519,6 @@ impl Builder {
 
         let f = MaybeDangling::new(f);
         let main = move || {
-
             if let Some(name) = their_thread.cname() {
                 imp::Thread::set_name(name);
             }
