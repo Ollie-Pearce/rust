@@ -263,23 +263,12 @@ cfg_if::cfg_if! {
 /// [stack-size]: ./index.html#stack-size
 #[must_use = "must eventually spawn the thread"]
 #[stable(feature = "rust1", since = "1.0.0")]
-#[repr(packed)]
+#[derive(Debug)]
 pub struct Builder {
     // A name for the thread-to-be, for identification in panic messages
     name: Option<String>,
     // The size of the stack for the spawned thread in bytes
     stack_size: Option<usize>,
-}
-
-#[stable(feature = "rust1", since = "1.0.0")]
-impl fmt::Debug for Builder {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Dummy values instead of reading actual fields
-        f.debug_struct("Builder")
-            .field("name", &"dummy_name")
-            .field("stack_size", &"dummy_stack_size")
-            .finish()
-    }
 }
 
 impl Builder {
