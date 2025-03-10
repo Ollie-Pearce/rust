@@ -45,11 +45,10 @@ const _: () = assert!(cfg!(panic = "abort"), "panic_immediate_abort requires -C 
 /// the actual formatting into this shared place.
 // If panic_immediate_abort, inline the abort call,
 // otherwise avoid inlining because of it is cold path.
-#[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
-#[cfg_attr(feature = "panic_immediate_abort", inline)]
 #[track_caller]
 #[lang = "panic_fmt"] // needed for const-evaluated panics
 #[rustc_do_not_const_check] // hooked by const-eval
+#[inline(always)]
 #[rustc_const_unstable(feature = "panic_internals", issue = "none")]
 pub const fn panic_fmt(fmt: fmt::Arguments<'_>) -> ! {
     if cfg!(feature = "panic_immediate_abort") {
@@ -230,8 +229,7 @@ pub fn panic_nounwind_nobacktrace(expr: &'static str) -> ! {
 }
 
 #[track_caller]
-#[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
-#[cfg_attr(feature = "panic_immediate_abort", inline)]
+#[inline(always)]
 #[rustc_const_unstable(feature = "panic_internals", issue = "none")]
 pub const fn panic_explicit() -> ! {
     panic_display(&"explicit panic");
