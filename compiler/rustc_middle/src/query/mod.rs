@@ -2288,6 +2288,11 @@ rustc_queries! {
         desc { "whether the item should be made inlinable across crates" }
         separate_provide_extern
     }
+
+    query collect_mod_unsafe_blocks(key: LocalModDefId) {
+        eval_always
+        desc { |tcx| "collecting unsafe blocks in {}", describe_as_module(key, tcx) }
+    }
 }
 
 rustc_query_append! { define_callbacks! }
