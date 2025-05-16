@@ -209,6 +209,10 @@ pub fn check_crate(tcx: TyCtxt<'_>) {
         }
     });
 
+    tcx.hir().for_each_module(|module_def_id| {
+        tcx.ensure().collect_mod_unsafe_blocks(module_def_id);
+    });
+
     tcx.ensure().check_unused_traits(());
 }
 
