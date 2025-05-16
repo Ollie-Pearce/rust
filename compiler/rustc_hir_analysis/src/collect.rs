@@ -57,7 +57,7 @@ mod type_of;
 ///////////////////////////////////////////////////////////////////////////
 
 fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
-    tcx.hir().visit_item_likes_in_module(module_def_id, &mut CollectUnsafeBlocksVisitor { tcx });
+    tcx.hir().visit_item_likes_in_module(module_def_id, &mut CollectUnsafeBlocksVisitor { tcx, inside_unsafe_block: false });
 }
 
 
@@ -343,30 +343,63 @@ impl<'tcx> Visitor<'tcx> for CollectItemTypesVisitor<'tcx> {
     }
 }
 
+
 struct CollectUnsafeBlocksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
+    inside_unsafe_block: bool,
 }
 
-impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx>{
+impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
     type NestedFilter = nested_filter::OnlyBodies;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.tcx.hir()
     }
 
-    #[instrument(level="trace", skip(self))]
+    #[instrument(level = "debug", skip(self), fields(hir_id = ?expr.hir_id))]
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-        match expr.kind{
+
+        match expr.kind { //Match expression to either Block or Closure
             ExprKind::Block(blk, _) => {
-                if let hir::BlockCheckMode::UnsafeBlock(hir::UnsafeSource::UserProvided) = blk.rules{
+                if let hir::BlockCheckMode::UnsafeBlock(hir::UnsafeSource::UserProvided) = blk.rules { //If block is user provided unsafe
+                    let def_owner_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                    let def_path = self.tcx.def_path(def_owner_id.to_def_id());
                     debug!("found user-provided unsafe block: {:?}", expr.hir_id);
+                    debug!("in function: {:?}", def_path);
+
+                    // Set flag, walk just this block
+                    let old = self.inside_unsafe_block;
+                    self.inside_unsafe_block = true;
+                    intravisit::walk_block(self, blk);
+                    self.inside_unsafe_block = old;
+
+                    return; // already visited this block
                 }
             }
-            _ => (),
+
+            ExprKind::Closure { .. } if self.inside_unsafe_block => {
+                let closure_def_id = expr.hir_id.owner.def_id;
+                debug!("found closure inside unsafe block: {:?}", expr.hir_id);
+            
+                if let Some(upvars) = self.tcx.upvars_mentioned(closure_def_id) {
+                    for (var_hir_id, upvar) in upvars {
+                        let name = self.tcx.hir().name(*var_hir_id);
+                        let span = self.tcx.hir().span(*var_hir_id);
+                        debug!("  upvar: {} at {:?}", name, span);
+                        debug!("    capture info: {:?}", upvar);
+                    }
+                } else {
+                    debug!("  closure uses no upvars");
+                }
+            }
+            
+
+            _ => {}
         }
+
         intravisit::walk_expr(self, expr);
     }
-} 
+}
 
 
 ///////////////////////////////////////////////////////////////////////////
