@@ -32,6 +32,7 @@ use rustc_middle::hir::nested_filter;
 use rustc_middle::query::Providers;
 use rustc_middle::ty::util::{Discr, IntTypeExt};
 use rustc_middle::ty::{self, AdtKind, Const, IsSuggestable, Ty, TyCtxt, Upcast};
+//use rustc_middle::hir::place::PlaceBase;
 use rustc_middle::{bug, span_bug};
 use rustc_span::symbol::{kw, sym, Ident, Symbol};
 use rustc_span::{Span, DUMMY_SP};
@@ -358,6 +359,7 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
 
     #[instrument(level = "debug", skip(self), fields(hir_id = ?expr.hir_id))]
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
+        
 
         match expr.kind { //Match expression to either Block or Closure
             ExprKind::Block(blk, _) => {
@@ -377,22 +379,81 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                 }
             }
 
-            ExprKind::Closure { .. } if self.inside_unsafe_block => {
+            ExprKind::Closure { .. } => {
+                debug!("found closure: {:?}", expr.hir_id);
                 let closure_def_id = expr.hir_id.owner.def_id;
-                debug!("found closure inside unsafe block: {:?}", expr.hir_id);
-            
-                if let Some(upvars) = self.tcx.upvars_mentioned(closure_def_id) {
-                    for (var_hir_id, upvar) in upvars {
-                        let name = self.tcx.hir().name(*var_hir_id);
-                        let span = self.tcx.hir().span(*var_hir_id);
-                        debug!("  upvar: {} at {:?}", name, span);
-                        debug!("    capture info: {:?}", upvar);
+                let body = self.tcx.hir().body_owned_by(closure_def_id);
+                for param in body.params {
+                    let pat = param.pat;
+                    debug!("closure argument pattern: {:#?}", pat);
+
+                    let snippet_result = self.tcx.sess.source_map().span_to_snippet(pat.span);
+                    match snippet_result {
+                        Ok(snippet) => {
+                            debug!("closure snippet: {:#?}", snippet);
+                        }
+                        Err(_) => {
+                            debug!("closure snippet: <error>");
+                        }
                     }
-                } else {
-                    debug!("  closure uses no upvars");
                 }
+
+                let closure_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
+                match closure_snippet {
+                    Ok(snippet) => {
+                        debug!("closure snippet: {:#?}", snippet);
+                    }
+                    Err(_) => {
+                        debug!("closure snippet: <error>");
+                    }
+                }
+
+
+
+
+                let closure_def_id = expr.hir_id.owner.def_id;
+
+                //
+                if let Some(_upvars) = self.tcx.upvars_mentioned(closure_def_id) {
+                    debug!("-- upvars_mentioned --");
+                } else {
+                    debug!("-- no upvars_mentioned --");
+                }
+                if self.tcx.closure_captures(closure_def_id).is_empty() {
+                    debug!("-- closure has no captures --");
+                } else {
+                    debug!("-- closure has captures --");
+                }
+                
+                /* else {
+                    for capture in self.tcx.closure_captures(closure_def_id) {
+                        match capture.place.base {
+                            PlaceBase::Local(hir_id) => {
+                                let name = self.tcx.hir().name(hir_id);
+                                let span = self.tcx.hir().span(hir_id);
+                                debug!("captured local `{}` at {:?}", name, span);
+                            }
+                        
+                            PlaceBase::Upvar(upvar_id) => {
+                                let hir_id = upvar_id.var_path.hir_id;
+                                let name = self.tcx.hir().name(hir_id);
+                                let span = self.tcx.hir().span(hir_id);
+                                debug!("captured upvar `{}` at {:?}", name, span);
+                            }
+                        
+                            PlaceBase::StaticItem => {
+                                debug!("captured static item UNKNOWN_WIP");
+                            }
+                        
+                            PlaceBase::Rvalue => {
+                                debug!("captured unnamed rvalue (temporary)");
+                            }
+                        }
+                        debug!("  capture kind: {:?}", capture.info.capture_kind);
+                    }
+                }*/
+                
             }
-            
 
             _ => {}
         }
