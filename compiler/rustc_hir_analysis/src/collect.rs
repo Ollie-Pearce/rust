@@ -429,9 +429,6 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                     }
                 }
 
-
-
-
                 let closure_def_id = expr.hir_id.owner.def_id;
 
                 //
@@ -448,17 +445,45 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                 
             }
 
-            ExprKind::Call { .. } => {
-                
-                if let ExprKind::Call(callee, ..) = expr.kind {
-                    let caller = expr.hir_id.owner.def_id;
-                    debug!("RustMC Identified Caller {:#?}", callee);
-                    debug!("RustMC Identified Callee {:#?}", caller);
+            ExprKind::Call (caller, ..) => {
+                debug!("RustMC Identified Caller {:#?}", caller);
+                match caller.kind {
+                    ExprKind::Path(hir::QPath::Resolved(.., path)) => {
 
-                    let my_typeck = self.tcx.typeck(expr.hir_id.owner.def_id);
-                } else{
-                    debug!("ERROR");
+                        debug!("RustMC Identified Caller Path {:#?}", path);
+                        let caller_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
+                        let path_snippet = self.tcx.sess.source_map().span_to_snippet(path.span);
+
+                        debug!("Caller snippet: {:#?}", caller_snippet);
+                        debug!("Path snippet: {:#?}", path_snippet);
+
+                        if path_snippet == Ok("thread::spawn".to_string()) {
+                            debug!("Thread::spawn detected");
+                        }
+                        //Path has path.segments
+                    }
+                    _ => {debug!("Could not identify Caller Path");}
                 }
+
+                // THis just gets the DefID of the caller
+                //let caller = self.tcx.hir().get_parent_item(expr.hir_id);
+                //debug!("RustMC Identified Caller {:#?}", callee);
+                
+
+
+                //let def_owner_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                //let def_path = self.tcx.def_path(def_owner_id.to_def_id());
+                //let callee_def_path = self.tcx.def_path(callee.hir_id.owner.def_id.to_def_id());
+
+                    
+                //let path = self.tcx.def_path_str(def_owner_id.to_def_id());
+                //debug!("test path: {:?}", path);
+                    
+                    
+
+                //debug!("Caller def path: {:?}", def_path);
+                //debug!("Callee def path: {:?}", callee_def_path);
+                //let my_typeck = self.tcx.typeck(expr.hir_id.owner.def_id);
 
             }
 
