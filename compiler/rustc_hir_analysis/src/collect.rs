@@ -58,7 +58,16 @@ mod type_of;
 ///////////////////////////////////////////////////////////////////////////
 
 fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
-    tcx.hir().visit_item_likes_in_module(module_def_id, &mut CollectUnsafeBlocksVisitor { tcx, inside_unsafe_block: false });
+    let mut vis = CollectUnsafeBlocksVisitor {
+        tcx,
+        inside_unsafe_block: false,
+        unsafe_sites: Vec::new(),
+    };
+    tcx.hir().visit_item_likes_in_module(module_def_id, &mut vis);
+    for entry in &vis.unsafe_sites {
+        debug!("found unsafe site, DefId: {:?}, Span: {:?}", entry.def_id, entry.span);
+    }
+    
 }
 
 
@@ -345,9 +354,16 @@ impl<'tcx> Visitor<'tcx> for CollectItemTypesVisitor<'tcx> {
 }
 
 
+//May need a "reason for unsafe" field, e.g. UnsafeBlock, UnsafeFnSig, UnsafeDeref, StaticMut,
+struct UnsafeFn {
+    def_id: DefId,
+    span: Span,
+}
+
 struct CollectUnsafeBlocksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     inside_unsafe_block: bool,
+    unsafe_sites: Vec<UnsafeFn>,
 }
 
 impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
@@ -365,6 +381,11 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
             ExprKind::Block(blk, _) => {
                 if let hir::BlockCheckMode::UnsafeBlock(hir::UnsafeSource::UserProvided) = blk.rules { //If block is user provided unsafe
                     let def_owner_id = self.tcx.hir().get_parent_item(expr.hir_id);
+
+                    self.unsafe_sites.push(UnsafeFn {
+                        def_id: def_owner_id.def_id.into(),
+                        span: expr.span,
+                    });
                     let def_path = self.tcx.def_path(def_owner_id.to_def_id());
                     debug!("found user-provided unsafe block: {:?}", expr.hir_id);
                     debug!("in function: {:?}", def_path);
@@ -425,34 +446,20 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                     debug!("-- closure has captures --");
                 }
                 
-                /* else {
-                    for capture in self.tcx.closure_captures(closure_def_id) {
-                        match capture.place.base {
-                            PlaceBase::Local(hir_id) => {
-                                let name = self.tcx.hir().name(hir_id);
-                                let span = self.tcx.hir().span(hir_id);
-                                debug!("captured local `{}` at {:?}", name, span);
-                            }
-                        
-                            PlaceBase::Upvar(upvar_id) => {
-                                let hir_id = upvar_id.var_path.hir_id;
-                                let name = self.tcx.hir().name(hir_id);
-                                let span = self.tcx.hir().span(hir_id);
-                                debug!("captured upvar `{}` at {:?}", name, span);
-                            }
-                        
-                            PlaceBase::StaticItem => {
-                                debug!("captured static item UNKNOWN_WIP");
-                            }
-                        
-                            PlaceBase::Rvalue => {
-                                debug!("captured unnamed rvalue (temporary)");
-                            }
-                        }
-                        debug!("  capture kind: {:?}", capture.info.capture_kind);
-                    }
-                }*/
+            }
+
+            ExprKind::Call { .. } => {
                 
+                if let ExprKind::Call(callee, ..) = expr.kind {
+                    let caller = expr.hir_id.owner.def_id;
+                    debug!("RustMC Identified Caller {:#?}", callee);
+                    debug!("RustMC Identified Callee {:#?}", caller);
+
+                    let my_typeck = self.tcx.typeck(expr.hir_id.owner.def_id);
+                } else{
+                    debug!("ERROR");
+                }
+
             }
 
             _ => {}
