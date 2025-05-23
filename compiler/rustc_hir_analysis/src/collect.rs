@@ -43,6 +43,7 @@ use rustc_trait_selection::traits::ObligationCtxt;
 use std::cell::Cell;
 use std::iter;
 use std::ops::Bound;
+use rustc_data_structures::fx::FxHashMap;
 
 use crate::check::intrinsic::intrinsic_operation_unsafety;
 use crate::errors;
@@ -62,10 +63,15 @@ fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
         tcx,
         inside_unsafe_block: false,
         unsafe_sites: Vec::new(),
+        call_graph: FxHashMap::default(),
     };
     tcx.hir().visit_item_likes_in_module(module_def_id, &mut vis);
     for entry in &vis.unsafe_sites {
         debug!("found unsafe site, DefId: {:?}, Span: {:?}", entry.def_id, entry.span);
+    }
+
+    for entry in &vis.call_graph {
+        debug!("found call graph, Caller: {:?}, Callee: {:?}", entry.0, entry.1);
     }
     
 }
@@ -364,6 +370,7 @@ struct CollectUnsafeBlocksVisitor<'tcx> {
     tcx: TyCtxt<'tcx>,
     inside_unsafe_block: bool,
     unsafe_sites: Vec<UnsafeFn>,
+    call_graph: FxHashMap<String, Vec<String>>,
 }
 
 impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
@@ -449,21 +456,30 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                 debug!("RustMC Identified Caller {:#?}", caller);
                 match caller.kind {
                     ExprKind::Path(hir::QPath::Resolved(.., path)) => {
+                        let owner_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                        let caller_span = self.tcx.hir().span(owner_hir_id.into());
+                        let source_map = self.tcx.sess.source_map();
+                        let caller_str = source_map.span_to_snippet(caller_span);
+
 
                         debug!("RustMC Identified Caller Path {:#?}", path);
                         let caller_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
                         let path_snippet = self.tcx.sess.source_map().span_to_snippet(path.span);
 
-                        debug!("Caller snippet: {:#?}", caller_snippet);
-                        debug!("Path snippet: {:#?}", path_snippet);
+                        debug!("Function call snippet: {:#?}", caller_snippet);
+                        debug!("Function call path snippet: {:#?}", path_snippet);
 
                         if path_snippet == Ok("thread::spawn".to_string()) {
                             debug!("Thread::spawn detected");
                         }
+                        self.call_graph.entry(caller_str.unwrap()).or_default().push(path_snippet.unwrap());
                         //Path has path.segments
                     }
                     _ => {debug!("Could not identify Caller Path");}
                 }
+
+
+                //I think we need to get the hir_id of the caller, which we can make the key in our hashmap
 
                 // THis just gets the DefID of the caller
                 //let caller = self.tcx.hir().get_parent_item(expr.hir_id);
