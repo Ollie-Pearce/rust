@@ -64,6 +64,7 @@ fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
         inside_unsafe_block: false,
         unsafe_sites: Vec::new(),
         call_graph: FxHashMap::default(),
+        thread_spawn_functions: Vec::new(),
     };
     tcx.hir().visit_item_likes_in_module(module_def_id, &mut vis);
     for entry in &vis.unsafe_sites {
@@ -71,7 +72,11 @@ fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
     }
 
     for entry in &vis.call_graph {
-        debug!("found call graph, Caller: {:?}, Callee: {:?}", entry.0, entry.1);
+        debug!("call graph entry, Caller: {:?}, Callee: {:?}", entry.0, entry.1);
+    }
+
+    for entry in &vis.thread_spawn_functions {
+        debug!("thread spawn function, {:?}", entry);
     }
     
 }
@@ -371,6 +376,7 @@ struct CollectUnsafeBlocksVisitor<'tcx> {
     inside_unsafe_block: bool,
     unsafe_sites: Vec<UnsafeFn>,
     call_graph: FxHashMap<String, Vec<String>>,
+    thread_spawn_functions: Vec<String>,
 }
 
 impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
@@ -463,44 +469,31 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
 
 
                         debug!("RustMC Identified Caller Path {:#?}", path);
-                        let caller_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
+                        let callee_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
                         let path_snippet = self.tcx.sess.source_map().span_to_snippet(path.span);
-
-                        debug!("Function call snippet: {:#?}", caller_snippet);
-                        debug!("Function call path snippet: {:#?}", path_snippet);
+                        debug!("Callee snippet: {:#?}", callee_snippet);
 
                         if path_snippet == Ok("thread::spawn".to_string()) {
-                            debug!("Thread::spawn detected");
+                            self.thread_spawn_functions.push(caller_str.clone().unwrap());
                         }
-                        self.call_graph.entry(caller_str.unwrap()).or_default().push(path_snippet.unwrap());
-                        //Path has path.segments
+
+                        self.call_graph.entry(caller_str.unwrap()).or_default().push(callee_snippet.unwrap());
                     }
                     _ => {debug!("Could not identify Caller Path");}
                 }
 
+            }
 
-                //I think we need to get the hir_id of the caller, which we can make the key in our hashmap
+            ExprKind::MethodCall(..) => {
+                debug!("RustMC Identified Method Call {:#?}", expr);
+                let owner_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                let caller_span = self.tcx.hir().span(owner_hir_id.into());
+                let source_map = self.tcx.sess.source_map();
+                let caller_str = source_map.span_to_snippet(caller_span);
 
-                // THis just gets the DefID of the caller
-                //let caller = self.tcx.hir().get_parent_item(expr.hir_id);
-                //debug!("RustMC Identified Caller {:#?}", callee);
-                
+                let callee_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
 
-
-                //let def_owner_id = self.tcx.hir().get_parent_item(expr.hir_id);
-                //let def_path = self.tcx.def_path(def_owner_id.to_def_id());
-                //let callee_def_path = self.tcx.def_path(callee.hir_id.owner.def_id.to_def_id());
-
-                    
-                //let path = self.tcx.def_path_str(def_owner_id.to_def_id());
-                //debug!("test path: {:?}", path);
-                    
-                    
-
-                //debug!("Caller def path: {:?}", def_path);
-                //debug!("Callee def path: {:?}", callee_def_path);
-                //let my_typeck = self.tcx.typeck(expr.hir_id.owner.def_id);
-
+                self.call_graph.entry(caller_str.unwrap()).or_default().push(callee_snippet.unwrap());
             }
 
             _ => {}
