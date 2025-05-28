@@ -82,7 +82,7 @@ fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
     }
 
     for (caller, callees) in &filtered_call_graph {
-        debug!("call graph entry, Caller: {:?}, Callees: {:?}", caller, callees);
+        debug!("filtered call graph entry, Caller: {:?}, Callees: {:?}", caller, callees);
     }
 
     for entry in &vis.call_graph {
@@ -410,13 +410,34 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
         match expr.kind { //Match expression to either Block or Closure
             ExprKind::Block(blk, _) => {
                 if let hir::BlockCheckMode::UnsafeBlock(hir::UnsafeSource::UserProvided) = blk.rules { //If block is user provided unsafe
-                    let owner_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
-                    let caller_span = self.tcx.hir().span(owner_hir_id.into());
-                    let source_map = self.tcx.sess.source_map();
-                    let caller_str = source_map.span_to_snippet(caller_span);
+
+                    let mut path_components = Vec::new();
+                    let mut current_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                    
+                    loop {
+                        if let Ok(owner_id) = current_hir_id.try_into() {
+                            let node = self.tcx.hir_node(owner_id);
+                            match node {
+                                hir::Node::Item(hir::Item { ident, kind: hir::ItemKind::Mod(..), .. }) |
+                                hir::Node::Item(hir::Item { ident, kind: hir::ItemKind::Fn(..), .. }) => {
+                                    path_components.push(ident.name.to_string());
+                                }
+                                _ => {}
+                            }
+                        }
+                    
+                        let parent = self.tcx.hir().get_parent_item(current_hir_id.into());
+                        if parent == current_hir_id {
+                            break;
+                        }
+                        current_hir_id = parent;
+                    }
+        
+                    path_components.reverse();
+                    let caller_str = path_components.join("::");
 
                     self.unsafe_sites.push(UnsafeFn {
-                        fn_name: caller_str.clone().unwrap(),
+                        fn_name: caller_str.clone(),
                         span: expr.span,
                     });
 
@@ -475,30 +496,51 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                 
             }
 
-            ExprKind::Call (caller, ..) => {
+            ExprKind::Call(caller, ..) => {
                 debug!("RustMC Identified Caller {:#?}", caller);
                 match caller.kind {
                     ExprKind::Path(hir::QPath::Resolved(.., path)) => {
-                        let owner_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
-                        let caller_span = self.tcx.hir().span(owner_hir_id.into());
-                        let source_map = self.tcx.sess.source_map();
-                        let caller_str = source_map.span_to_snippet(caller_span);
-
-
+                        // Construct caller path string manually from HIR
+                        let mut path_components = Vec::new();
+                        let mut current_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                        
+                        loop {
+                            if let Ok(owner_id) = current_hir_id.try_into() {
+                                let node = self.tcx.hir_node(owner_id);
+                                match node {
+                                    hir::Node::Item(hir::Item { ident, kind: hir::ItemKind::Mod(..), .. }) |
+                                    hir::Node::Item(hir::Item { ident, kind: hir::ItemKind::Fn(..), .. }) => {
+                                        path_components.push(ident.name.to_string());
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        
+                            let parent = self.tcx.hir().get_parent_item(current_hir_id.into());
+                            if parent == current_hir_id {
+                                break;
+                            }
+                            current_hir_id = parent;
+                        }
+            
+                        path_components.reverse();
+                        let caller_str = path_components.join("::");
+            
                         debug!("RustMC Identified Caller Path {:#?}", path);
                         let callee_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
                         let path_snippet = self.tcx.sess.source_map().span_to_snippet(path.span);
                         debug!("Callee snippet: {:#?}", callee_snippet);
-
+            
                         if path_snippet == Ok("thread::spawn".to_string()) {
-                            self.thread_spawn_functions.push(caller_str.clone().unwrap());
+                            self.thread_spawn_functions.push(caller_str.clone());
                         }
-
-                        self.call_graph.entry(caller_str.unwrap()).or_default().push(callee_snippet.unwrap());
+            
+                        self.call_graph.entry(caller_str).or_default().push(path_snippet.unwrap());
                     }
-                    _ => {debug!("Could not identify Caller Path");}
+                    _ => {
+                        debug!("Could not identify Caller Path");
+                    }
                 }
-
             }
 
             ExprKind::MethodCall(..) => {
@@ -509,7 +551,6 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                 let caller_str = source_map.span_to_snippet(caller_span);
 
                 let callee_snippet = self.tcx.sess.source_map().span_to_snippet(expr.span);
-
                 self.call_graph.entry(caller_str.unwrap()).or_default().push(callee_snippet.unwrap());
             }
 
