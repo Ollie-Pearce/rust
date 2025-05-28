@@ -67,17 +67,35 @@ fn collect_mod_unsafe_blocks(tcx: TyCtxt<'_>, module_def_id: LocalModDefId) {
         thread_spawn_functions: Vec::new(),
     };
     tcx.hir().visit_item_likes_in_module(module_def_id, &mut vis);
-    for entry in &vis.unsafe_sites {
-        debug!("found unsafe site, DefId: {:?}, Span: {:?}", entry.def_id, entry.span);
+
+    /*let _unsafe_fn_set: FxHashSet<String> = vis.unsafe_sites.iter()
+    .map(|f| tcx.def_path_str(f.def_id))
+    .collect();*/
+
+
+    let filtered_call_graph = filter_call_graph(
+        &vis.call_graph,
+        &vis.unsafe_sites.iter()
+            .map(|f| f.fn_name.clone())
+            .collect::<FxHashSet<_>>(),
+        &vis.thread_spawn_functions.iter().cloned().collect::<FxHashSet<_>>(),
+    );
+
+     for entry in &vis.unsafe_sites {
+         debug!("found unsafe site, DefId: {:?}, Span: {:?}", entry.fn_name, entry.span);
     }
 
-    for entry in &vis.call_graph {
+    for (caller, callees) in &filtered_call_graph {
+        debug!("call graph entry, Caller: {:?}, Callees: {:?}", caller, callees);
+    }
+
+    /*for entry in &vis.call_graph {
         debug!("call graph entry, Caller: {:?}, Callee: {:?}", entry.0, entry.1);
     }
 
     for entry in &vis.thread_spawn_functions {
         debug!("thread spawn function, {:?}", entry);
-    }
+    }*/
     
 }
 
@@ -367,7 +385,7 @@ impl<'tcx> Visitor<'tcx> for CollectItemTypesVisitor<'tcx> {
 
 //May need a "reason for unsafe" field, e.g. UnsafeBlock, UnsafeFnSig, UnsafeDeref, StaticMut,
 struct UnsafeFn {
-    def_id: DefId,
+    fn_name: String,
     span: Span,
 }
 
@@ -393,15 +411,15 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
         match expr.kind { //Match expression to either Block or Closure
             ExprKind::Block(blk, _) => {
                 if let hir::BlockCheckMode::UnsafeBlock(hir::UnsafeSource::UserProvided) = blk.rules { //If block is user provided unsafe
-                    let def_owner_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                    let owner_hir_id = self.tcx.hir().get_parent_item(expr.hir_id);
+                    let caller_span = self.tcx.hir().span(owner_hir_id.into());
+                    let source_map = self.tcx.sess.source_map();
+                    let caller_str = source_map.span_to_snippet(caller_span);
 
                     self.unsafe_sites.push(UnsafeFn {
-                        def_id: def_owner_id.def_id.into(),
+                        fn_name: caller_str.clone().unwrap(),
                         span: expr.span,
                     });
-                    let def_path = self.tcx.def_path(def_owner_id.to_def_id());
-                    debug!("found user-provided unsafe block: {:?}", expr.hir_id);
-                    debug!("in function: {:?}", def_path);
 
                     // Set flag, walk just this block
                     let old = self.inside_unsafe_block;
@@ -503,6 +521,42 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
     }
 }
 
+fn filter_call_graph(
+    call_graph: &FxHashMap<String, Vec<String>>,
+    unsafe_fn_set: &FxHashSet<String>,
+    thread_spawn_set: &FxHashSet<String>,
+) -> FxHashMap<String, Vec<String>> {
+    let mut filtered_graph: FxHashMap<String, Vec<String>> = FxHashMap::default();
+
+    for (start, _) in call_graph {
+        let mut visited: FxHashSet<String> = FxHashSet::default();
+        let mut stack = vec![(start.clone(), vec![start.clone()])];
+
+        while let Some((node, path)) = stack.pop() {
+            if let Some(callees) = call_graph.get(&node) {
+                for callee in callees {
+                    if visited.contains(callee) {
+                        continue;
+                    }
+                    let mut new_path = path.clone();
+                    new_path.push(callee.clone());
+
+                    let unsafe_count = new_path.iter().filter(|f| unsafe_fn_set.contains(*f)).count();
+                    let contains_thread_spawn = new_path.iter().any(|f| thread_spawn_set.contains(f));
+
+                    if unsafe_count >= 2 && contains_thread_spawn {
+                        filtered_graph.entry(node.clone()).or_default().push(callee.clone());
+                    }
+
+                    visited.insert(callee.clone());
+                    stack.push((callee.clone(), new_path));
+                }
+            }
+        }
+    }
+
+    filtered_graph
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // Utility types and common code for the above passes.
