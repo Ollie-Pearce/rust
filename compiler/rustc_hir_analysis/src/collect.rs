@@ -386,6 +386,7 @@ impl<'tcx> Visitor<'tcx> for CollectItemTypesVisitor<'tcx> {
 struct UnsafeFn {
     fn_name: String,
     span: Span,
+    block_count: i32,
 }
 
 struct CollectUnsafeBlocksVisitor<'tcx> {
@@ -436,9 +437,15 @@ impl<'tcx> Visitor<'tcx> for CollectUnsafeBlocksVisitor<'tcx> {
                     path_components.reverse();
                     let caller_str = path_components.join("::");
 
+                    if self.unsafe_sites.iter().any(|f| f.fn_name == caller_str) {
+                        self.unsafe_sites.iter_mut()
+                            .find(|f| f.fn_name == caller_str)
+                            .unwrap().block_count += 1;
+                    }
                     self.unsafe_sites.push(UnsafeFn {
                         fn_name: caller_str.clone(),
                         span: expr.span,
+                        block_count: 1,
                     });
 
                     // Set flag, walk just this block
