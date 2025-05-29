@@ -566,49 +566,28 @@ fn filter_call_graph(
     unsafe_fn_set: &FxHashSet<String>,
     thread_spawn_set: &FxHashSet<String>,
 ) -> FxHashMap<String, Vec<String>> {
-    let mut retained_nodes: FxHashSet<String> = FxHashSet::default();
+    let mut filtered_graph: FxHashMap<String, Vec<String>> = FxHashMap::default();
 
-    // Pass 1: collect all nodes along any path satisfying the condition
-    for (start, _) in call_graph {
-        let mut visited: FxHashSet<String> = FxHashSet::default();
-        let mut stack = vec![(start.clone(), vec![start.clone()])];
-
-        while let Some((node, path)) = stack.pop() {
-            if let Some(callees) = call_graph.get(&node) {
-                for callee in callees {
-                    if visited.contains(callee) {
-                        continue;
-                    }
-
-                    let mut new_path = path.clone();
-                    new_path.push(callee.clone());
-
-                    let unsafe_count = new_path.iter().filter(|f| unsafe_fn_set.contains(*f)).count();
-                    let contains_thread_spawn = new_path.iter().any(|f| thread_spawn_set.contains(f));
-
-                    if unsafe_count >= 2 && contains_thread_spawn {
-                        // Retain all functions in the valid path
-                        for func in &new_path {
-                            retained_nodes.insert(func.clone());
-                        }
-                    }
-
-                    visited.insert(callee.clone());
-                    stack.push((callee.clone(), new_path));
-                }
+    for (caller, callees) in call_graph {
+        let mut unsafe_fn_count = 0;
+        let mut thread_spawn_count = 0;
+        if unsafe_fn_set.contains(caller) {
+            unsafe_fn_count += 1; 
+        }
+        if thread_spawn_set.contains(caller) {
+            thread_spawn_count += 1;
+        }
+        for callee in callees {
+            if unsafe_fn_set.contains(callee) {
+                unsafe_fn_count += 1;
+            }
+            if thread_spawn_set.contains(callee) {
+                thread_spawn_count += 1;
             }
         }
-    }
 
-    // Pass 2: reconstruct full subgraph over retained nodes
-    let mut filtered_graph: FxHashMap<String, Vec<String>> = FxHashMap::default();
-    for (caller, callees) in call_graph {
-        if retained_nodes.contains(caller) {
-            for callee in callees {
-                if retained_nodes.contains(callee) {
-                    filtered_graph.entry(caller.clone()).or_default().push(callee.clone());
-                }
-            }
+        if unsafe_fn_count > 1 && thread_spawn_count > 0 {
+            filtered_graph.insert(caller.clone(), callees.clone());
         }
     }
 
