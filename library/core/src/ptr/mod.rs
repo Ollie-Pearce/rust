@@ -539,7 +539,7 @@ mod mut_ptr;
 #[lang = "drop_in_place"]
 #[allow(unconditional_recursion)]
 #[rustc_diagnostic_item = "ptr_drop_in_place"]
-#[inline(always)]
+#[inline]
 pub unsafe fn drop_in_place<T: ?Sized>(to_drop: *mut T) {
     // Code here does not matter - this is replaced by the
     // real drop glue by the compiler.
