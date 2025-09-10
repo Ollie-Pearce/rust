@@ -291,6 +291,7 @@ struct RcBox<T: ?Sized> {
 }
 
 /// Calculate layout for `RcBox<T>` using the inner value's layout
+#[inline(always)]
 fn rcbox_layout_for_value_layout(layout: Layout) -> Layout {
     // Calculate layout using the given value layout.
     // Previously, layout was calculated on the expression
