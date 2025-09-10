@@ -1122,6 +1122,7 @@ where
         panic!("failed printing to {label}: {e}");
     }
 }
+
 //#[inline(always)]
 fn print_to_buffer_if_capture_used(args: fmt::Arguments<'_>) -> bool {
     OUTPUT_CAPTURE_USED.load(Ordering::Relaxed)
@@ -1238,6 +1239,7 @@ pub fn _print(args: fmt::Arguments<'_>) {
 )]
 #[doc(hidden)]
 #[cfg(not(test))]
+#[inline(always)]
 pub fn _eprint(args: fmt::Arguments<'_>) {
     print_to(args, stderr, "stderr");
 }
