@@ -1160,6 +1160,7 @@ pub trait UpperExp {
 ///
 /// [`write!`]: crate::write!
 #[stable(feature = "rust1", since = "1.0.0")]
+#[inline(always)]
 pub fn write(output: &mut dyn Write, args: Arguments<'_>) -> Result {
     let mut formatter = Formatter::new(output);
     let mut idx = 0;
