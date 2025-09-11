@@ -1280,7 +1280,7 @@ pub fn min<T: Ord>(v1: T, v2: T) -> T {
 /// let result = cmp::min_by(-2, 3, |x: &i32, y: &i32| x.abs().cmp(&y.abs()));
 /// assert_eq!(result, -2);
 /// ```
-#[inline]
+#[inline(always)]
 #[must_use]
 #[stable(feature = "cmp_min_max_by", since = "1.53.0")]
 pub fn min_by<T, F: FnOnce(&T, &T) -> Ordering>(v1: T, v2: T, compare: F) -> T {
@@ -1349,7 +1349,7 @@ pub fn max<T: Ord>(v1: T, v2: T) -> T {
 /// let result = cmp::max_by(-2, 2, |x: &i32, y: &i32| x.abs().cmp(&y.abs())) ;
 /// assert_eq!(result, 2);
 /// ```
-#[inline]
+#[inline(always)]
 #[must_use]
 #[stable(feature = "cmp_min_max_by", since = "1.53.0")]
 pub fn max_by<T, F: FnOnce(&T, &T) -> Ordering>(v1: T, v2: T, compare: F) -> T {
@@ -1475,7 +1475,7 @@ mod impls {
         ($($t:ty)*) => ($(
             #[stable(feature = "rust1", since = "1.0.0")]
             impl PartialEq for $t {
-                #[inline]
+                #[inline(always)]
                 fn eq(&self, other: &$t) -> bool { (*self) == (*other) }
                 #[inline]
                 fn ne(&self, other: &$t) -> bool { (*self) != (*other) }
@@ -1485,7 +1485,7 @@ mod impls {
 
     #[stable(feature = "rust1", since = "1.0.0")]
     impl PartialEq for () {
-        #[inline]
+        #[inline(always)]
         fn eq(&self, _other: &()) -> bool {
             true
         }
@@ -1624,7 +1624,7 @@ mod impls {
 
     #[unstable(feature = "never_type", issue = "35121")]
     impl PartialEq for ! {
-        #[inline]
+        #[inline(always)]
         fn eq(&self, _: &!) -> bool {
             *self
         }
@@ -1656,7 +1656,7 @@ mod impls {
     where
         A: PartialEq<B>,
     {
-        #[inline]
+        #[inline(always)]
         fn eq(&self, other: &&B) -> bool {
             PartialEq::eq(*self, *other)
         }
@@ -1711,7 +1711,7 @@ mod impls {
     where
         A: PartialEq<B>,
     {
-        #[inline]
+        #[inline(always)]
         fn eq(&self, other: &&mut B) -> bool {
             PartialEq::eq(*self, *other)
         }
@@ -1764,7 +1764,7 @@ mod impls {
     where
         A: PartialEq<B>,
     {
-        #[inline]
+        #[inline(always)]
         fn eq(&self, other: &&mut B) -> bool {
             PartialEq::eq(*self, *other)
         }
@@ -1779,7 +1779,7 @@ mod impls {
     where
         A: PartialEq<B>,
     {
-        #[inline]
+        #[inline(always)]
         fn eq(&self, other: &&B) -> bool {
             PartialEq::eq(*self, *other)
         }
