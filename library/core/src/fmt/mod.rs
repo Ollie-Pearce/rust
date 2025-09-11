@@ -344,7 +344,7 @@ impl<'a> Arguments<'a> {
 
     /// When using the format_args!() macro, this function is used to generate the
     /// Arguments structure.
-    #[inline]
+    #[inline(always)]
     pub fn new_v1<const P: usize, const A: usize>(
         pieces: &'a [&'static str; P],
         args: &'a [rt::Argument<'a>; A],
