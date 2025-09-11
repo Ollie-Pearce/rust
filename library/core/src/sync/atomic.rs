@@ -3304,7 +3304,7 @@ unsafe fn atomic_store<T: Copy>(dst: *mut T, val: T, order: Ordering) {
     }
 }
 
-#[inline]
+#[inline(always)]
 #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces
 unsafe fn atomic_load<T: Copy>(dst: *const T, order: Ordering) -> T {
     // SAFETY: the caller must uphold the safety contract for `atomic_load`.
@@ -3404,7 +3404,7 @@ unsafe fn atomic_compare_exchange<T: Copy>(
     if ok { Ok(val) } else { Err(val) }
 }
 
-#[inline]
+#[inline(always)]
 #[cfg(target_has_atomic)]
 #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces
 unsafe fn atomic_compare_exchange_weak<T: Copy>(
