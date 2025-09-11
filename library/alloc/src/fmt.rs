@@ -629,8 +629,9 @@ use crate::string;
 #[cfg(not(no_global_oom_handling))]
 #[must_use]
 #[stable(feature = "rust1", since = "1.0.0")]
-#[inline]
+#[inline(always)]
 pub fn format(args: Arguments<'_>) -> string::String {
+    #[inline(always)]
     fn format_inner(args: Arguments<'_>) -> string::String {
         let capacity = args.estimated_capacity();
         let mut output = string::String::with_capacity(capacity);
