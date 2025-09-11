@@ -55,6 +55,7 @@ impl<A, B> SlicePartialEq<B> for [A]
 where
     A: PartialEq<B>,
 {
+    #[inline(always)]
     default fn equal(&self, other: &[B]) -> bool {
         if self.len() != other.len() {
             return false;
@@ -80,6 +81,7 @@ impl<A, B> SlicePartialEq<B> for [A]
 where
     A: BytewiseEq<B>,
 {
+    #[inline(always)]
     fn equal(&self, other: &[B]) -> bool {
         if self.len() != other.len() {
             return false;
