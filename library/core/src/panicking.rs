@@ -384,8 +384,8 @@ pub fn assert_matches_failed<T: fmt::Debug + ?Sized>(
 }
 
 /// Non-generic version of the above functions, to avoid code bloat.
-#[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
-#[cfg_attr(feature = "panic_immediate_abort", inline)]
+#[cfg_attr(not(feature = "panic_immediate_abort"), inline(always), cold)]
+#[cfg_attr(feature = "panic_immediate_abort", inline(always))]
 #[track_caller]
 fn assert_failed_inner(
     kind: AssertKind,
