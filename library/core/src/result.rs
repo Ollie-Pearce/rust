@@ -601,7 +601,7 @@ impl<T, E> Result<T, E> {
     /// ```
     #[must_use = "if you intended to assert that this is err, consider `.unwrap_err()` instead"]
     #[rustc_const_stable(feature = "const_result_basics", since = "1.48.0")]
-    #[inline]
+    #[inline(always)]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub const fn is_err(&self) -> bool {
         !self.is_ok()

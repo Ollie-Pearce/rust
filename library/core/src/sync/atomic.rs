@@ -3369,7 +3369,7 @@ unsafe fn atomic_sub<T: Copy>(dst: *mut T, val: T, order: Ordering) -> T {
     }
 }
 
-#[inline]
+#[inline(always)]
 #[cfg(target_has_atomic)]
 #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces
 unsafe fn atomic_compare_exchange<T: Copy>(

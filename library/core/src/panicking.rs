@@ -252,7 +252,7 @@ pub const fn panic_str_2015(expr: &str) -> ! {
     panic_display(&expr);
 }
 
-#[inline]
+#[inline(always)]
 #[track_caller]
 #[rustc_do_not_const_check] // hooked by const-eval
 // enforce a &&str argument in const-check and hook this by const-eval
