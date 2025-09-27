@@ -11,6 +11,7 @@ use crate::os::unix::ffi::OsStringExt;
 use crate::vec;
 
 /// One-time global initialization.
+#[inline(always)]
 pub unsafe fn init(argc: isize, argv: *const *const u8) {
     imp::init(argc, argv)
 }

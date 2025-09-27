@@ -128,6 +128,7 @@ mod imp {
     /// # Safety
     /// Must be called only once
     #[forbid(unsafe_op_in_unsafe_fn)]
+    #[inline(always)]
     pub unsafe fn init() {
         PAGE_SIZE.store(os::page_size(), Ordering::Relaxed);
 

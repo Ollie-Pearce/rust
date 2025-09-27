@@ -40,6 +40,7 @@ pub mod time;
 pub fn init(_argc: isize, _argv: *const *const u8, _sigpipe: u8) {}
 
 #[cfg(not(target_os = "espidf"))]
+#[inline(always)]
 // SAFETY: must be called only once during runtime initialization.
 // NOTE: this is not guaranteed to run, for example when Rust code is called externally.
 // See `fn init()` in `library/std/src/rt.rs` for docs on `sigpipe`.
@@ -71,6 +72,7 @@ pub unsafe fn init(argc: isize, argv: *const *const u8, sigpipe: u8) {
         thread::Thread::set_name(&c"main");
     }
 
+    #[inline(always)]
     unsafe fn sanitize_standard_fds() {
         // fast path with a single syscall for systems with poll()
         #[cfg(not(any(
@@ -159,6 +161,7 @@ pub unsafe fn init(argc: isize, argv: *const *const u8, sigpipe: u8) {
         }
     }
 
+    #[inline(always)]
     unsafe fn reset_sigpipe(#[allow(unused_variables)] sigpipe: u8) {
         #[cfg(not(any(
             target_os = "emscripten",
