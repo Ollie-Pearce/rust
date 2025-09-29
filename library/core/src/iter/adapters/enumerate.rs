@@ -42,7 +42,7 @@ where
     /// # Panics
     ///
     /// Might panic if the index of the element overflows a `usize`.
-    #[inline]
+    #[inline(always)]
     #[rustc_inherit_overflow_checks]
     fn next(&mut self) -> Option<(usize, <I as Iterator>::Item)> {
         let a = self.iter.next()?;

@@ -371,6 +371,7 @@ pub trait DoubleEndedIterator: Iterator {
 
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<'a, I: DoubleEndedIterator + ?Sized> DoubleEndedIterator for &'a mut I {
+    #[inline(always)]
     fn next_back(&mut self) -> Option<I::Item> {
         (**self).next_back()
     }

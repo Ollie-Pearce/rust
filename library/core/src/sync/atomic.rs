@@ -3289,7 +3289,7 @@ fn strongest_failure_ordering(order: Ordering) -> Ordering {
     }
 }
 
-#[inline]
+#[inline(always)]
 #[cfg_attr(miri, track_caller)] // even without panics, this helps for Miri backtraces
 unsafe fn atomic_store<T: Copy>(dst: *mut T, val: T, order: Ordering) {
     // SAFETY: the caller must uphold the safety contract for `atomic_store`.

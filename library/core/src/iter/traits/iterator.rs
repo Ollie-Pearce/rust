@@ -187,7 +187,7 @@ pub trait Iterator {
     ///
     /// assert_eq!((usize::MAX, None), iter.size_hint());
     /// ```
-    #[inline]
+    #[inline(always)]
     #[stable(feature = "rust1", since = "1.0.0")]
     #[rustc_do_not_const_check]
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -4105,10 +4105,11 @@ where
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<I: Iterator + ?Sized> Iterator for &mut I {
     type Item = I::Item;
-    #[inline]
+    #[inline(always)]
     fn next(&mut self) -> Option<I::Item> {
         (**self).next()
     }
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (**self).size_hint()
     }
