@@ -382,7 +382,7 @@ impl<T> Arc<T> {
     /// let five = Arc::new(5);
     /// ```
     #[cfg(not(no_global_oom_handling))]
-    #[inline]
+    #[inline(always)]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn new(data: T) -> Arc<T> {
         // Start the weak pointer count as 1 which is the weak pointer that's

@@ -253,6 +253,7 @@ impl<T: 'static> LocalKey<T> {
     /// destructor running, and it **may** panic if the destructor has
     /// previously been run for this thread.
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn with<F, R>(&'static self, f: F) -> R
     where
         F: FnOnce(&T) -> R,

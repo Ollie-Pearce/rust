@@ -352,7 +352,7 @@ impl<I: Iterator> IntoIterator for I {
     type Item = I::Item;
     type IntoIter = I;
 
-    #[inline]
+    #[inline(always)]
     fn into_iter(self) -> I {
         self
     }
