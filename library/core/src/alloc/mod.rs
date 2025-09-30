@@ -386,7 +386,7 @@ where
         (**self).allocate_zeroed(layout)
     }
 
-    #[inline]
+    #[inline(always)]
     unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
         // SAFETY: the safety contract must be upheld by the caller
         unsafe { (**self).deallocate(ptr, layout) }
