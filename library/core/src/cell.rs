@@ -404,7 +404,7 @@ impl<T> Cell<T> {
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
     #[rustc_const_stable(feature = "const_cell_new", since = "1.24.0")]
-    #[inline]
+    #[inline(always)]
     pub const fn new(value: T) -> Cell<T> {
         Cell { value: UnsafeCell::new(value) }
     }
