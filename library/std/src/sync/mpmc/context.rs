@@ -64,7 +64,7 @@ impl Context {
     }
 
     /// Creates a new `Context`.
-    #[cold]
+    #[inline(always)]
     fn new() -> Context {
         Context {
             inner: Arc::new(Inner {
