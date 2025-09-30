@@ -2067,7 +2067,7 @@ impl<T> Default for Option<T> {
     /// let opt: Option<u32> = Option::default();
     /// assert!(opt.is_none());
     /// ```
-    #[inline]
+    #[inline(always)]
     fn default() -> Option<T> {
         None
     }
