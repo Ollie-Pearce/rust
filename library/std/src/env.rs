@@ -225,6 +225,7 @@ pub fn var<K: AsRef<OsStr>>(key: K) -> Result<String, VarError> {
     _var(key.as_ref())
 }
 
+#[inline(always)]
 fn _var(key: &OsStr) -> Result<String, VarError> {
     match var_os(key) {
         Some(s) => s.into_string().map_err(VarError::NotUnicode),
