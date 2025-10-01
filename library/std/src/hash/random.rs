@@ -48,7 +48,7 @@ impl RandomState {
     ///
     /// let s = RandomState::new();
     /// ```
-    #[inline]
+    #[inline(always)]
     #[allow(deprecated)]
     // rand
     #[must_use]
