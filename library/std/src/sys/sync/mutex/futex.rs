@@ -30,7 +30,7 @@ impl Mutex {
         }
     }
 
-    #[cold]
+    #[inline(always)]
     fn lock_contended(&self) {
         // Spin first to speed things up if the lock is released quickly.
         let mut state = self.spin();
