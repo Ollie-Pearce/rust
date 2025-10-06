@@ -797,6 +797,7 @@ pub fn current() -> Thread {
 /// [`Condvar`]: crate::sync::Condvar
 /// [`Mutex`]: crate::sync::Mutex
 #[stable(feature = "rust1", since = "1.0.0")]
+#[inline(always)]
 pub fn yield_now() {
     imp::Thread::yield_now()
 }
