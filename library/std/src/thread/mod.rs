@@ -711,6 +711,7 @@ pub(crate) fn set_current(thread: Thread) {
 ///
 /// In contrast to the public `current` function, this will not panic if called
 /// from inside a TLS destructor.
+#[inline(always)]
 pub(crate) fn try_current() -> Option<Thread> {
     CURRENT
         .try_with(|current| {
@@ -757,6 +758,7 @@ pub(crate) fn current_id() -> ThreadId {
 /// ```
 #[must_use]
 #[stable(feature = "rust1", since = "1.0.0")]
+#[inline(always)]
 pub fn current() -> Thread {
     try_current().expect(
         "use of std::thread::current() is not possible \
