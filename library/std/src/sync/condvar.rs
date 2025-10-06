@@ -544,6 +544,7 @@ impl Condvar {
     /// }
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn notify_all(&self) {
         self.inner.notify_all()
     }
