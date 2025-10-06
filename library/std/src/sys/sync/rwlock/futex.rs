@@ -166,7 +166,7 @@ impl RwLock {
         }
     }
 
-    #[cold]
+    #[inline(always)]
     fn write_contended(&self) {
         let mut state = self.spin_write();
 
