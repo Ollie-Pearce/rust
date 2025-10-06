@@ -112,6 +112,7 @@ impl Thread {
         }
     }
 
+    #[inline(always)]
     pub fn yield_now() {
         let ret = unsafe { libc::sched_yield() };
         debug_assert_eq!(ret, 0);
