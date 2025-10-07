@@ -311,6 +311,7 @@ fn truncate_cstr<const MAX_WITH_NUL: usize>(cstr: &CStr) -> [libc::c_char; MAX_W
     result
 }
 
+#[inline(always)]
 pub fn available_parallelism() -> io::Result<NonZero<usize>> {
     cfg_if::cfg_if! {
         if #[cfg(any(
