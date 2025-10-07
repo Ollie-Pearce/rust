@@ -498,6 +498,7 @@ mod cgroups {
 
     /// Returns cgroup CPU quota in core-equivalents, rounded down or usize::MAX if the quota cannot
     /// be determined or is not set.
+    #[inline(always)]
     pub(super) fn quota() -> usize {
         let mut quota = usize::MAX;
         if cfg!(miri) {
