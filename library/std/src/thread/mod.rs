@@ -1910,6 +1910,7 @@ fn _assert_sync_and_send() {
 #[doc(alias = "hardware_concurrency")] // Alias for C++ `std::thread::hardware_concurrency`.
 #[doc(alias = "num_cpus")] // Alias for a popular ecosystem crate which provides similar functionality.
 #[stable(feature = "available_parallelism", since = "1.59.0")]
+#[inline(always)]
 pub fn available_parallelism() -> io::Result<NonZero<usize>> {
     imp::available_parallelism()
 }
