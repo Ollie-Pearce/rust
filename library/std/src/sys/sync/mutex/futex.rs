@@ -61,6 +61,7 @@ impl Mutex {
         }
     }
 
+    #[inline(always)]
     fn spin(&self) -> State {
         let mut spin = 100;
         loop {
