@@ -23,7 +23,7 @@ impl Condvar {
         self.futex.fetch_add(1, Relaxed);
         futex_wake(&self.futex);
     }
-
+    #[inline(always)]
     pub fn notify_all(&self) {
         self.futex.fetch_add(1, Relaxed);
         futex_wake_all(&self.futex);
