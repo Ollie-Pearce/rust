@@ -22,6 +22,7 @@ pub type SmallPrimitive = u32;
 ///
 /// Returns false on timeout, and true in all other cases.
 #[cfg(any(target_os = "linux", target_os = "android", target_os = "freebsd"))]
+#[inline(always)]
 pub fn futex_wait(futex: &AtomicU32, expected: u32, timeout: Option<Duration>) -> bool {
     use super::time::Timespec;
     use crate::ptr::null;
