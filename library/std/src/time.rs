@@ -281,6 +281,7 @@ impl Instant {
     /// ```
     #[must_use]
     #[stable(feature = "time2", since = "1.8.0")]
+    #[inline(always)]
     pub fn now() -> Instant {
         Instant(time::Instant::now())
     }
