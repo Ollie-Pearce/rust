@@ -103,6 +103,7 @@ pub fn futex_wake(futex: &AtomicU32) -> bool {
 
 /// Wake up all threads that are waiting on futex_wait on this futex.
 #[cfg(any(target_os = "linux", target_os = "android"))]
+#[inline(always)]
 pub fn futex_wake_all(futex: &AtomicU32) {
     let ptr = futex as *const AtomicU32;
     let op = libc::FUTEX_WAKE | libc::FUTEX_PRIVATE_FLAG;
