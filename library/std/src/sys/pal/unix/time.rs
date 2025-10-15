@@ -38,6 +38,7 @@ impl SystemTime {
         Ok(SystemTime { t: Timespec::new(tv_sec, tv_nsec)? })
     }
 
+    #[inline(always)]
     pub fn now() -> SystemTime {
         SystemTime { t: Timespec::now(libc::CLOCK_REALTIME) }
     }
@@ -100,6 +101,7 @@ impl Timespec {
         }
     }
 
+    #[inline(always)]
     pub fn now(clock: libc::clockid_t) -> Timespec {
         use crate::mem::MaybeUninit;
         use crate::sys::cvt;
@@ -257,6 +259,7 @@ pub struct Instant {
 }
 
 impl Instant {
+    #[inline(always)]
     pub fn now() -> Instant {
         // https://www.manpagez.com/man/3/clock_gettime/
         //
