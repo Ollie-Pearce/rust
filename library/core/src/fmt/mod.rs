@@ -912,7 +912,7 @@ pub trait Binary {
 /// assert_eq!(format!("l as hex is: {l:x}"), "l as hex is: 9");
 ///
 /// assert_eq!(format!("l as hex is: {l:#010x}"), "l as hex is: 0x00000009");
-/// ```
+/// ```g
 #[stable(feature = "rust1", since = "1.0.0")]
 pub trait LowerHex {
     #[doc = include_str!("fmt_trait_method_doc.md")]
@@ -1427,6 +1427,7 @@ impl<'a> Formatter<'a> {
     /// assert_eq!(format!("{Foo:0>4}"), "0Foo");
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn pad(&mut self, s: &str) -> Result {
         // Make sure there's a fast path up front
         if self.width.is_none() && self.precision.is_none() {
@@ -1623,6 +1624,7 @@ impl<'a> Formatter<'a> {
     /// assert_eq!(format!("{Foo:0>8}"), "Foo");
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[inline(always)]
     pub fn write_str(&mut self, data: &str) -> Result {
         self.buf.write_str(data)
     }
@@ -1962,6 +1964,7 @@ impl<'a> Formatter<'a> {
     /// );
     /// ```
     #[stable(feature = "debug_builders", since = "1.2.0")]
+    #[inline(always)]
     pub fn debug_struct<'b>(&'b mut self, name: &str) -> DebugStruct<'b, 'a> {
         builders::debug_struct_new(self, name)
     }
@@ -2116,6 +2119,7 @@ impl<'a> Formatter<'a> {
     /// );
     /// ```
     #[stable(feature = "debug_builders", since = "1.2.0")]
+    #[inline(always)]
     pub fn debug_tuple<'b>(&'b mut self, name: &str) -> DebugTuple<'b, 'a> {
         builders::debug_tuple_new(self, name)
     }
@@ -2241,6 +2245,7 @@ impl<'a> Formatter<'a> {
     /// assert_eq!(format!("{:?}", Foo(vec![10, 11])), "[10, 11]");
     /// ```
     #[stable(feature = "debug_builders", since = "1.2.0")]
+    #[inline(always)]
     pub fn debug_list<'b>(&'b mut self) -> DebugList<'b, 'a> {
         builders::debug_list_new(self)
     }
@@ -2351,6 +2356,7 @@ impl Write for Formatter<'_> {
 
 #[stable(feature = "rust1", since = "1.0.0")]
 impl Display for Error {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         Display::fmt("an error occurred when formatting an argument", f)
     }
@@ -2457,6 +2463,7 @@ impl Debug for str {
 
 #[stable(feature = "rust1", since = "1.0.0")]
 impl Display for str {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.pad(self)
     }
@@ -2501,6 +2508,7 @@ impl<T: ?Sized> Pointer for *const T {
 /// `fn(...) -> ...` without using [problematic] "Oxford Casts".
 ///
 /// [problematic]: https://github.com/rust-lang/rust/issues/95489
+#[inline(always)]
 pub(crate) fn pointer_fmt_inner(ptr_addr: usize, f: &mut Formatter<'_>) -> Result {
     let old_width = f.width;
     let old_flags = f.flags;

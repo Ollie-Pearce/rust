@@ -1,3 +1,4 @@
+#[inline(always)]
 pub fn hashmap_random_keys() -> (u64, u64) {
     const KEY_LEN: usize = core::mem::size_of::<u64>();
 
@@ -156,6 +157,7 @@ mod imp {
         true
     }
 
+    #[inline(always)]
     pub fn fill_bytes(v: &mut [u8]) {
         // getrandom_fill_bytes here can fail if getrandom() returns EAGAIN,
         // meaning it would have blocked because the non-blocking pool (urandom)
