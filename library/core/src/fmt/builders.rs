@@ -91,6 +91,7 @@ pub struct DebugStruct<'a, 'b: 'a> {
     has_fields: bool,
 }
 
+#[inline(always)]
 pub(super) fn debug_struct_new<'a, 'b>(
     fmt: &'a mut fmt::Formatter<'b>,
     name: &str,
@@ -293,6 +294,7 @@ pub struct DebugTuple<'a, 'b: 'a> {
     empty_name: bool,
 }
 
+#[inline(always)]
 pub(super) fn debug_tuple_new<'a, 'b>(
     fmt: &'a mut fmt::Formatter<'b>,
     name: &str,
@@ -614,6 +616,7 @@ pub struct DebugList<'a, 'b: 'a> {
     inner: DebugInner<'a, 'b>,
 }
 
+#[inline(always)]
 pub(super) fn debug_list_new<'a, 'b>(fmt: &'a mut fmt::Formatter<'b>) -> DebugList<'a, 'b> {
     let result = fmt.write_str("[");
     DebugList { inner: DebugInner { fmt, result, has_fields: false } }
