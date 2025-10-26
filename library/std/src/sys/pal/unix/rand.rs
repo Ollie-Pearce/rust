@@ -30,6 +30,7 @@ mod imp {
     use crate::sys::weak::syscall;
 
     #[cfg(any(target_os = "linux", target_os = "android"))]
+    #[inline(always)]
     fn getrandom(buf: &mut [u8]) -> libc::ssize_t {
         use crate::sync::atomic::{AtomicBool, Ordering};
         use crate::sys::os::errno;
@@ -110,10 +111,13 @@ mod imp {
         target_os = "illumos",
         netbsd10
     ))]
+    #[inline(always)]
     fn getrandom_fill_bytes(v: &mut [u8]) -> bool {
         use crate::sync::atomic::{AtomicBool, Ordering};
         use crate::sys::os::errno;
 
+        //#[no_mangle]
+        //#[used]
         static GETRANDOM_UNAVAILABLE: AtomicBool = AtomicBool::new(false);
         if GETRANDOM_UNAVAILABLE.load(Ordering::Relaxed) {
             return false;
