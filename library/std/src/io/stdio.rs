@@ -1123,7 +1123,7 @@ where
     }
 }
 
-#[inline(always)]
+//#[inline(always)]
 fn print_to_buffer_if_capture_used(args: fmt::Arguments<'_>) -> bool {
     OUTPUT_CAPTURE_USED.load(Ordering::Relaxed)
         && OUTPUT_CAPTURE.try_with(|s| {
